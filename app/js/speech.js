@@ -13,15 +13,24 @@ function loadVoices() {
   const voices = window.speechSynthesis.getVoices();
   if (!voices.length) return;
 
-  // Prefer Czech voices
+  // Known female Czech voice names across platforms:
+  //   macOS/iOS: "Zuzana"
+  //   Windows:   "Helena", "Microsoft Helena"
+  //   Google:    "Google čeština" (female)
+  const FEMALE_NAMES = ['zuzana', 'helena', 'google češt'];
+
+  const isFemale = v => FEMALE_NAMES.some(n => v.name.toLowerCase().includes(n));
+
   const czVoices = voices.filter(v => v.lang.startsWith('cs'));
   if (czVoices.length) {
-    // Prefer local (non-remote) voice if available
-    _voice = czVoices.find(v => v.localService) || czVoices[0];
+    _voice =
+      czVoices.find(v => isFemale(v) && v.localService) ??  // female + local
+      czVoices.find(v => isFemale(v)) ??                    // female remote
+      czVoices.find(v => v.localService) ??                 // any local Czech
+      czVoices[0];                                          // any Czech
   } else {
     // Fallback: Slovak (sk) sounds reasonably close
     const skVoice = voices.find(v => v.lang.startsWith('sk'));
-    // Or any European voice that might handle diacritics
     _voice = skVoice || voices.find(v => v.localService) || voices[0] || null;
   }
   _voicesLoaded = true;

@@ -70,8 +70,19 @@ function handleRoute() {
    INIT
    ============================================================ */
 
+function loadFooterVersion() {
+  fetch('data/version.json')
+    .then(r => r.json())
+    .then(({ version }) => {
+      document.getElementById('app-footer').innerHTML =
+        `Školníček ${version} &copy; Ing. Zdeněk Plachý, <a href="mailto:zdenek@plachy.cz">zdenek@plachy.cz</a>`;
+    })
+    .catch(() => { /* version.json chybí v lokálním vývoji – nic nezobrazíme */ });
+}
+
 async function init() {
   await loadData();
+  loadFooterVersion();
   const user = getUser();
   const { route } = getRouteParams();
 
