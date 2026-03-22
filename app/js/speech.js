@@ -17,7 +17,7 @@ function loadVoices() {
   //   macOS/iOS: "Zuzana"
   //   Windows:   "Helena", "Microsoft Helena"
   //   Google:    "Google čeština" (female)
-  const FEMALE_NAMES = ['zuzana', 'helena', 'google češt'];
+  const FEMALE_NAMES = ['zuzana', 'helena', 'vlasta', 'šárka', 'google češt'];
 
   const isFemale = v => FEMALE_NAMES.some(n => v.name.toLowerCase().includes(n));
 
