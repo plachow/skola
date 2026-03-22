@@ -733,8 +733,12 @@ function onDictationSubmit(word) {
   const userInput  = inputEl.value.trim();
   if (!userInput) return;
 
-  // Case-insensitive comparison, but diacritics must match
-  const isCorrect = userInput.toLowerCase() === word.word.toLowerCase();
+  // Accept base form (word.word) OR the inflected form as it appears in the sentence
+  const wordFormRe = new RegExp(word.blank.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '[a-záčďéěíňóřšťúůýž]*', 'i');
+  const wordFormMatch = word.sentence.match(wordFormRe);
+  const wordInSentence = wordFormMatch ? wordFormMatch[0].replace('_', word.answer) : word.word;
+  const isCorrect = userInput.toLowerCase() === word.word.toLowerCase()
+                 || userInput.toLowerCase() === wordInSentence.toLowerCase();
 
   const isFirstAttempt = !s.answered.find(a => a.wordId === word.id);
   s.answered.push({ wordId: word.id, correct: isCorrect, firstAttempt: isFirstAttempt });
