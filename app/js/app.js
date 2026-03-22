@@ -164,6 +164,31 @@ function renderHome() {
   const xpBar = document.getElementById('home-xp-bar');
   xpBar.style.width = `${Math.round(levelInfo.progress * 100)}%`;
 
+  // Rename button
+  document.getElementById('btn-rename').onclick = () => {
+    const nameEl = document.getElementById('home-username');
+    const current = getUser() || '';
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.value = current;
+    input.className = 'rename-input';
+    input.maxLength = 20;
+    nameEl.replaceWith(input);
+    document.getElementById('btn-rename').style.display = 'none';
+    input.focus();
+    input.select();
+    const commit = () => {
+      const val = input.value.trim();
+      if (val) saveUser(val);
+      renderHome();
+    };
+    input.addEventListener('blur', commit);
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); input.blur(); }
+      if (e.key === 'Escape') { input.removeEventListener('blur', commit); renderHome(); }
+    });
+  };
+
   // Module button → category list
   const btnModule = document.getElementById('btn-module-parovky');
   btnModule.onclick = () => {
