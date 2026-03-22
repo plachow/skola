@@ -3,7 +3,7 @@
  * Vanilla JS ES modules, hash-based routing
  */
 
-import { CATEGORIES, CATEGORY_MAP, WORD_MAP, BADGES, BADGE_MAP, getLevelInfo } from './data.js';
+import { CATEGORIES, CATEGORY_MAP, WORD_MAP, BADGES, BADGE_MAP, getLevelInfo, loadData } from './data.js';
 import {
   getAll, saveAll,
   getUser, saveUser,
@@ -70,7 +70,8 @@ function handleRoute() {
    INIT
    ============================================================ */
 
-function init() {
+async function init() {
+  await loadData();
   const user = getUser();
   const { route } = getRouteParams();
 
