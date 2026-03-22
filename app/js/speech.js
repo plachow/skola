@@ -93,6 +93,18 @@ export function speak(text, rate = 0.85, pitch = 1.0, lang = 'cs-CZ') {
 }
 
 /**
+ * Speak text, then repeat it at 75% of the original rate (same pitch).
+ * Useful for dictation: hear it naturally, then slowly.
+ */
+export function speakWithRepeat(text, rate = 0.85, pitch = 1.0, lang = 'cs-CZ') {
+  const utt = speak(text, rate, pitch, lang);
+  if (!utt) return;
+  utt.onend = () => {
+    speak(text, rate * 0.75, pitch, lang);
+  };
+}
+
+/**
  * Check whether speech synthesis is available in this browser
  */
 export function isSpeechAvailable() {

@@ -12,7 +12,7 @@ import {
   getBadges, awardBadge,
   getProgress, saveProgress,
 } from './storage.js';
-import { speak, cancel, isSpeechAvailable } from './speech.js';
+import { speak, speakWithRepeat, cancel, isSpeechAvailable } from './speech.js';
 
 /* ============================================================
    ROUTING
@@ -680,12 +680,12 @@ function renderDictationWord(word) {
   speakerBtn.parentNode.replaceChild(newSpeaker, speakerBtn);
   const fullSentence = word.sentence.replace(word.blank, word.word);
   newSpeaker.addEventListener('click', () => {
-    speak(fullSentence);
+    speakWithRepeat(fullSentence);
   });
 
   // Auto-speak on desktop/Android (not iOS – no user gesture yet for initial load)
   // We try to speak; it will silently fail on iOS until a gesture is made
-  setTimeout(() => speak(fullSentence), 300);
+  setTimeout(() => speakWithRepeat(fullSentence), 300);
 
   // Submit handler
   const newSubmit = submitBtn.cloneNode(true);
