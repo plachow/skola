@@ -349,17 +349,25 @@ h1, h2, h3 {
   line-height: 1.1;
 }
 
+.header-user {
+  position: relative;
+}
+
 .rename-btn {
+  position: absolute;
+  top: 0;
+  right: -1.2rem;
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 0.9rem;
-  opacity: 0.7;
-  padding: 2px 4px;
-  vertical-align: middle;
+  font-size: 0.65rem;
+  opacity: 0;
+  padding: 2px;
   line-height: 1;
+  transition: opacity 0.15s;
 }
-.rename-btn:hover { opacity: 1; }
+.header-user:hover .rename-btn { opacity: 0.6; }
+.rename-btn:hover { opacity: 1 !important; }
 
 .rename-input {
   font-size: 1.5rem;

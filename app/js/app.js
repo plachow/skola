@@ -165,28 +165,40 @@ function renderHome() {
   xpBar.style.width = `${Math.round(levelInfo.progress * 100)}%`;
 
   // Rename button
-  document.getElementById('btn-rename').onclick = () => {
-    const nameEl = document.getElementById('home-username');
-    const current = getUser() || '';
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.value = current;
-    input.className = 'rename-input';
-    input.maxLength = 20;
-    nameEl.replaceWith(input);
-    document.getElementById('btn-rename').style.display = 'none';
-    input.focus();
-    input.select();
+  const btnRename  = document.getElementById('btn-rename');
+  const nameEl     = document.getElementById('home-username');
+  const renameInput = document.getElementById('rename-input');
+
+  btnRename.onclick = () => {
+    renameInput.value = getUser() || '';
+    nameEl.style.display    = 'none';
+    btnRename.style.display = 'none';
+    renameInput.style.display = '';
+    renameInput.focus();
+    renameInput.select();
+
     const commit = () => {
-      const val = input.value.trim();
-      if (val) saveUser(val);
-      renderHome();
+      const val = renameInput.value.trim();
+      if (val) {
+        saveUser(val);
+        nameEl.textContent = val;
+      }
+      renameInput.style.display   = 'none';
+      nameEl.style.display        = '';
+      btnRename.style.display     = '';
+      renameInput.removeEventListener('blur', commit);
     };
-    input.addEventListener('blur', commit);
-    input.addEventListener('keydown', e => {
-      if (e.key === 'Enter') { e.preventDefault(); input.blur(); }
-      if (e.key === 'Escape') { input.removeEventListener('blur', commit); renderHome(); }
-    });
+
+    renameInput.addEventListener('blur', commit);
+    renameInput.onkeydown = (e) => {
+      if (e.key === 'Enter')  { e.preventDefault(); renameInput.blur(); }
+      if (e.key === 'Escape') {
+        renameInput.removeEventListener('blur', commit);
+        renameInput.style.display = 'none';
+        nameEl.style.display      = '';
+        btnRename.style.display   = '';
+      }
+    };
   };
 
   // Module button → category list
@@ -666,13 +678,14 @@ function renderDictationWord(word) {
   // Remove old listener by cloning
   const newSpeaker = speakerBtn.cloneNode(true);
   speakerBtn.parentNode.replaceChild(newSpeaker, speakerBtn);
+  const fullSentence = word.sentence.replace(word.blank, word.word);
   newSpeaker.addEventListener('click', () => {
-    speak(word.word);
+    speak(fullSentence);
   });
 
   // Auto-speak on desktop/Android (not iOS – no user gesture yet for initial load)
   // We try to speak; it will silently fail on iOS until a gesture is made
-  setTimeout(() => speak(word.word), 300);
+  setTimeout(() => speak(fullSentence), 300);
 
   // Submit handler
   const newSubmit = submitBtn.cloneNode(true);
