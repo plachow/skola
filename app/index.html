@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#4F8EF7" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <title>Školníček</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div id="app">
+    <canvas id="confetti-canvas"></canvas>
+
+    <!-- WELCOME SCREEN -->
+    <div id="screen-welcome" class="screen" role="main">
+      <div class="welcome-inner">
+        <div class="logo-wrap">
+          <div class="logo-emoji" aria-hidden="true">🏫</div>
+          <h1 class="logo-title">Školníček</h1>
+          <p class="logo-sub">Procvičuj češtinu s radostí!</p>
+        </div>
+        <div class="welcome-form">
+          <label for="name-input" class="welcome-label">Jak se jmenuješ?</label>
+          <input
+            id="name-input"
+            type="text"
+            class="text-input"
+            placeholder="Napiš své jméno…"
+            maxlength="30"
+            autocomplete="given-name"
+            autocorrect="off"
+            spellcheck="false"
+          />
+          <button id="btn-welcome-start" class="btn btn-primary btn-full" disabled>
+            Začít dobrodružství! 🚀
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- HOME SCREEN -->
+    <div id="screen-home" class="screen hidden" role="main">
+      <header class="home-header">
+        <div class="header-top">
+          <div class="header-user">
+            <span class="header-greeting">Ahoj,</span>
+            <span id="home-username" class="header-name"></span>
+          </div>
+          <div class="header-streak" id="home-streak" title="Dny v řadě">
+            🔥 <span id="home-streak-count">0</span>
+          </div>
+        </div>
+        <div class="level-row">
+          <div class="level-badge" id="home-level-badge">
+            <span id="home-level-emoji">🌱</span>
+            <span id="home-level-name">Prvňáček</span>
+          </div>
+          <div class="xp-bar-wrap">
+            <div class="xp-bar-track">
+              <div class="xp-bar-fill" id="home-xp-bar"></div>
+            </div>
+            <div class="xp-label" id="home-xp-label">0 XP</div>
+          </div>
+        </div>
+      </header>
+
+      <main class="home-main">
+        <section class="home-section">
+          <h2 class="section-title">Procvičování</h2>
+          <button class="module-card" id="btn-module-parovky" aria-label="Párové souhlásky – otevřít kategorie">
+            <span class="module-icon">🔤</span>
+            <div class="module-info">
+              <div class="module-name">Párové souhlásky</div>
+              <div class="module-desc">Procvičuj b/p, d/t, g/k, v/f, h/ch, z/s</div>
+            </div>
+            <span class="module-arrow" aria-hidden="true">›</span>
+          </button>
+        </section>
+
+        <section class="home-section" id="section-categories">
+          <h2 class="section-title">Moje kategorie</h2>
+          <div class="categories-grid" id="home-categories-grid"></div>
+        </section>
+
+        <section class="home-section" id="section-badges" style="display:none">
+          <h2 class="section-title">Poslední odznak</h2>
+          <div class="badge-showcase" id="home-badge-showcase"></div>
+        </section>
+      </main>
+    </div>
+
+    <!-- CATEGORY SCREEN -->
+    <div id="screen-category" class="screen hidden" role="main">
+      <header class="inner-header" id="cat-header">
+        <button class="btn-back" id="cat-back" aria-label="Zpět">
+          <span aria-hidden="true">‹</span> Zpět
+        </button>
+        <h1 class="inner-title" id="cat-title"></h1>
+      </header>
+      <main class="inner-main">
+        <div class="cat-hero" id="cat-hero">
+          <span class="cat-hero-emoji" id="cat-hero-emoji"></span>
+          <div class="cat-hero-info">
+            <div class="cat-hero-name" id="cat-hero-name"></div>
+            <div class="cat-hero-count" id="cat-hero-count"></div>
+          </div>
+        </div>
+
+        <div class="mode-list">
+          <button class="mode-card" id="mode-btn-practice" data-mode="practice">
+            <span class="mode-icon">📝</span>
+            <div class="mode-info">
+              <div class="mode-name">Procvičovat</div>
+              <div class="mode-desc">Opakuj, dokud to nemáš v malíčku</div>
+            </div>
+            <div class="mode-right">
+              <div class="mode-progress-dots" id="mode-dots-practice"></div>
+            </div>
+          </button>
+
+          <button class="mode-card" id="mode-btn-test" data-mode="test">
+            <span class="mode-icon">🎯</span>
+            <div class="mode-info">
+              <div class="mode-name">Test</div>
+              <div class="mode-desc">Ověř své znalosti bez nápovědy</div>
+            </div>
+            <div class="mode-right">
+              <div class="mode-progress-dots" id="mode-dots-test"></div>
+              <div class="mode-lock" id="mode-lock-test" aria-hidden="true">🔒</div>
+            </div>
+          </button>
+
+          <button class="mode-card" id="mode-btn-dictation" data-mode="dictation">
+            <span class="mode-icon">🎙️</span>
+            <div class="mode-info">
+              <div class="mode-name">Diktát</div>
+              <div class="mode-desc">Poslechni a správně napiš</div>
+            </div>
+            <div class="mode-right">
+              <div class="mode-progress-dots" id="mode-dots-dictation"></div>
+              <div class="mode-lock" id="mode-lock-dictation" aria-hidden="true">🔒</div>
+            </div>
+          </button>
+        </div>
+
+        <div class="lock-message hidden" id="lock-message">
+          🔒 Splň nejprve Procvičování (70 %), abys odemkl/a Test.
+        </div>
+        <div class="lock-message hidden" id="lock-message-dict">
+          🔒 Splň nejprve Test, abys odemkl/a Diktát.
+        </div>
+      </main>
+    </div>
+
+    <!-- EXERCISE SCREEN -->
+    <div id="screen-exercise" class="screen hidden" role="main">
+      <header class="ex-header">
+        <button class="btn-back" id="ex-back" aria-label="Zpět na výběr cvičení">
+          <span aria-hidden="true">‹</span> Zpět
+        </button>
+        <div class="ex-progress-wrap">
+          <div class="ex-progress-label" id="ex-progress-label"></div>
+          <div class="ex-progress-track">
+            <div class="ex-progress-fill" id="ex-progress-fill"></div>
+          </div>
+        </div>
+        <div class="ex-streak-display" id="ex-streak-display" title="Série správných odpovědí" aria-live="polite"></div>
+      </header>
+
+      <!-- PRACTICE / TEST VIEW -->
+      <main class="ex-main" id="ex-main-quiz">
+        <div class="ex-sentence" id="ex-sentence" aria-live="polite"></div>
+
+        <div class="ex-word-wrap">
+          <div class="ex-word" id="ex-word" aria-label="Doplňované slovo"></div>
+        </div>
+
+        <div class="ex-hint-bar" id="ex-hint-bar">
+          <button class="btn-hint" id="btn-hint" aria-label="Ukázat nápovědu">
+            💡 Nápověda
+          </button>
+          <div class="hint-panel hidden" id="hint-panel" aria-live="polite"></div>
+        </div>
+
+        <div class="ex-options" id="ex-options" role="group" aria-label="Vyber správné písmeno"></div>
+
+        <div class="ex-feedback" id="ex-feedback" aria-live="assertive"></div>
+      </main>
+
+      <!-- DICTATION VIEW -->
+      <main class="ex-main hidden" id="ex-main-dictation">
+        <div class="ex-sentence" id="ex-dict-sentence" aria-live="polite"></div>
+
+        <div class="dict-speaker-wrap">
+          <button class="btn-speaker" id="btn-speaker" aria-label="Přehrát slovo">
+            🔊
+          </button>
+          <div class="dict-hint-text">Poslechni a napiš slovo</div>
+        </div>
+
+        <div class="dict-input-wrap">
+          <input
+            id="dict-input"
+            type="text"
+            class="text-input dict-text-input"
+            placeholder="Napiš slovo…"
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="off"
+            spellcheck="false"
+          />
+          <button class="btn btn-primary btn-full" id="btn-dict-submit">
+            Zkontrolovat ✓
+          </button>
+        </div>
+
+        <div class="ex-feedback" id="ex-dict-feedback" aria-live="assertive"></div>
+      </main>
+    </div>
+
+    <!-- RESULTS SCREEN -->
+    <div id="screen-results" class="screen hidden" role="main">
+      <main class="results-main">
+        <h1 class="results-title" id="results-title">Výsledky</h1>
+
+        <div class="stars-row" id="stars-row" aria-label="Hodnocení" role="img">
+          <span class="star-item" id="star-1" aria-hidden="true">⭐</span>
+          <span class="star-item" id="star-2" aria-hidden="true">⭐</span>
+          <span class="star-item" id="star-3" aria-hidden="true">⭐</span>
+        </div>
+
+        <div class="results-score" id="results-score"></div>
+
+        <div class="xp-gained" id="xp-gained" aria-live="polite"></div>
+
+        <div class="level-up-banner hidden" id="level-up-banner" aria-live="assertive">
+          <div class="level-up-emoji" id="level-up-emoji"></div>
+          <div class="level-up-text">Nová úroveň!</div>
+          <div class="level-up-name" id="level-up-name"></div>
+        </div>
+
+        <div class="new-badges" id="new-badges"></div>
+
+        <div class="wrong-review" id="wrong-review"></div>
+
+        <div class="results-actions">
+          <button class="btn btn-outline" id="btn-results-back">Zpět domů</button>
+          <button class="btn btn-secondary" id="btn-results-retry">Zkusit znovu 🔄</button>
+          <button class="btn btn-primary hidden" id="btn-results-next">Přejít na Test 🎯</button>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
