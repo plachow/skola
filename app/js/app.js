@@ -1047,16 +1047,14 @@ function renderBlankWord(blank) {
  * The blank placeholder _ in the sentence stays as underscore styled text.
  */
 function renderSentenceHtml(sentence, blank) {
-  // Escape HTML first
   const safe = escapeHtml(sentence);
-  // Replace the blank pattern in sentence (e.g. "chle_") with a bolded version
-  const blankEscaped = escapeHtml(blank);
-  // Build regex that replaces the blank in the sentence with highlighted version
-  const highlighted = safe.replace(
-    blankEscaped,
-    `<strong style="color:var(--primary)">${blankEscaped}</strong>`
+  // Escape any regex special chars in the blank (precaution)
+  const blankEscaped = escapeHtml(blank).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  // Match blank + any following Czech letters (case suffix: -u, -em, -ě, -ech, …)
+  const re = new RegExp(blankEscaped + '[a-záčďéěíňóřšťúůýž]*', 'i');
+  return safe.replace(re, match =>
+    `<strong style="color:var(--primary)">${match}</strong>`
   );
-  return highlighted;
 }
 
 function escapeHtml(str) {

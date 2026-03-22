@@ -1,0 +1,27 @@
+{
+  "levels": [
+    { "level": 1, "name": "Prvňáček",     "emoji": "🌱", "xpRequired": 0    },
+    { "level": 2, "name": "Pilný žák",    "emoji": "📚", "xpRequired": 150  },
+    { "level": 3, "name": "Šikovný",      "emoji": "⭐", "xpRequired": 350  },
+    { "level": 4, "name": "Chytrák",      "emoji": "🎓", "xpRequired": 700  },
+    { "level": 5, "name": "Jedničkář",    "emoji": "🌟", "xpRequired": 1200 },
+    { "level": 6, "name": "Vzorný žák",   "emoji": "🏅", "xpRequired": 1800 },
+    { "level": 7, "name": "Génius třídy", "emoji": "🧠", "xpRequired": 2500 },
+    { "level": 8, "name": "Mistr",        "emoji": "🏆", "xpRequired": 3500 }
+  ],
+  "badges": [
+    { "id": "first-session",   "emoji": "🌱", "name": "První krok",    "desc": "Dokončil/a jsi první cvičení"             },
+    { "id": "hot-streak",      "emoji": "🔥", "name": "Na vlně",       "desc": "5 správných odpovědí v řadě"              },
+    { "id": "three-stars",     "emoji": "⭐", "name": "Tři hvězdy",    "desc": "První cvičení se třemi hvězdami"          },
+    { "id": "first-dictation", "emoji": "📝", "name": "Diktátor",      "desc": "Dokončil/a jsi první diktát"              },
+    { "id": "perfect-test",    "emoji": "🎯", "name": "Ostrý střelec", "desc": "100 % v libovolném testu"                 },
+    { "id": "never-give-up",   "emoji": "💪", "name": "Nevzdám se",    "desc": "Dokončil/a jsi cvičení i po 3+ chybách"  },
+    { "id": "master-bp",       "emoji": "🅱️", "name": "Mistr B/P",     "desc": "Všechny 3 režimy pro B/P splněny"        },
+    { "id": "master-dt",       "emoji": "🦕", "name": "Mistr D/T",     "desc": "Všechny 3 režimy pro D/T splněny"        },
+    { "id": "master-gk",       "emoji": "🦅", "name": "Mistr G/K",     "desc": "Všechny 3 režimy pro G/K splněny"        },
+    { "id": "master-vf",       "emoji": "🦊", "name": "Mistr V/F",     "desc": "Všechny 3 režimy pro V/F splněny"        },
+    { "id": "master-hch",      "emoji": "🐉", "name": "Mistr H/CH",    "desc": "Všechny 3 režimy pro H/CH splněny"       },
+    { "id": "master-zs",       "emoji": "🌺", "name": "Mistr Z/S",     "desc": "Všechny 3 režimy pro Z/S splněny"        },
+    { "id": "champion",        "emoji": "🏆", "name": "Šampión",       "desc": "Získal/a jsi všechny odznaky kategorií"  }
+  ]
+}

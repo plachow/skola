@@ -1,0 +1,12 @@
+{
+  "modules": [
+    {
+      "id": "cs-parovky",
+      "subject": "Český jazyk",
+      "subjectId": "cs",
+      "name": "Párové souhlásky",
+      "emoji": "🏫",
+      "file": "cs-parovky.json"
+    }
+  ]
+}
