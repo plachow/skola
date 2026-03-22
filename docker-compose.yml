@@ -1,7 +1,30 @@
-version: '3.8'
 services:
   skola:
-    build: .
-    ports:
-      - "8080:80"
+    image: ghcr.io/plachow/skola:latest
+    container_name: skola
     restart: unless-stopped
+    pull_policy: always
+    environment:
+      - TZ=Europe/Prague
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.skola.rule=Host(`skola.plachy.cz`)"
+      - "traefik.http.routers.skola.entrypoints=web"
+      - "traefik.http.services.skola.loadbalancer.server.port=80"
+    networks:
+      - proxy
+
+  watchtower:
+    image: containrrr/watchtower:latest
+    container_name: watchtower
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /home/plachow/.docker/config.json:/config.json:ro
+    environment:
+      - DOCKER_API_VERSION=1.44
+    command: --interval 300 --cleanup
+
+networks:
+  proxy:
+    external: true
