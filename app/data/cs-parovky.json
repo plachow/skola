@@ -2,6 +2,28 @@
   "id": "cs-parovky",
   "categories": [
     {
+      "id": "d-t-mekke",
+      "name": "Ď / Ť",
+      "emoji": "🦋",
+      "color": "#5C6BC0",
+      "unlockAfter": null,
+      "pair": ["Ď", "Ť"],
+      "words": [
+        { "id": "dtm-1",  "word": "loď",    "blank": "lo_",    "answer": "ď", "proof": "lodě",    "sentence": "Malá lo_ se houpala na vlnách přístavu a čekala, až kapitán vydá rozkaz k odplutí." },
+        { "id": "dtm-2",  "word": "zeď",    "blank": "ze_",    "answer": "ď", "proof": "zdi",     "sentence": "Sousedova ze_ je porostlá břečťanem a v létě vypadá jako zelená záclona." },
+        { "id": "dtm-3",  "word": "měď",    "blank": "mě_",    "answer": "ď", "proof": "mědi",    "sentence": "Střecha kostela zezelenavěla, protože byla pokryta tenkou vrstvou mě_i." },
+        { "id": "dtm-4",  "word": "záď",    "blank": "zá_",    "answer": "ď", "proof": "zádě",    "sentence": "Kapitán stál na zá_i výletní lodi a mával turistům shromážděným na nábřeží." },
+        { "id": "dtm-5",  "word": "příď",   "blank": "pří_",   "answer": "ď", "proof": "přídě",   "sentence": "Na pří_i plachetnice seděl racek a klidně se nechal houpat na vlnách." },
+        { "id": "dtm-6",  "word": "síť",    "blank": "sí_",    "answer": "ť", "proof": "sítě",    "sentence": "Rybářova sí_ uvízla na kameni na dně a museli ji táhnout ze dna opravdu dlouho." },
+        { "id": "dtm-7",  "word": "niť",    "blank": "ni_",    "answer": "ť", "proof": "nitě",    "sentence": "Zlatá ni_ proplétala celý gobelín a v slunečním světle se třpytila jako zlato." },
+        { "id": "dtm-8",  "word": "huť",    "blank": "hu_",    "answer": "ť", "proof": "hutě",    "sentence": "Ve staré hu_i se tavilo železo a záře z pece ozařovala celé údolí." },
+        { "id": "dtm-9",  "word": "lať",    "blank": "la_",    "answer": "ť", "proof": "latě",    "sentence": "Kůň přeskočil la_ čistě a diváci na tribuně nadšeně zatleskali." },
+        { "id": "dtm-10", "word": "suť",    "blank": "su_",    "answer": "ť", "proof": "sutě",    "sentence": "Po bouřce zatarasila su_ z kopce celou horskou cestu dolů do vesnice." },
+        { "id": "dtm-11", "word": "paměť",  "blank": "pamě_",  "answer": "ť", "proof": "paměti",  "sentence": "Babičce slouží pamě_ výborně a básničky z dětství si pamatuje celé zpaměti." },
+        { "id": "dtm-12", "word": "zeť",    "blank": "ze_",    "answer": "ť", "proof": "zetě",    "sentence": "Dědeček byl na svého ze_ě velmi pyšný, protože se dobře staral o celou rodinu." }
+      ]
+    },
+    {
       "id": "b-p",
       "name": "B / P",
       "emoji": "🐻",
