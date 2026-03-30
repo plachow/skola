@@ -37,6 +37,7 @@ function defaultCatProgress() {
     practice:  defaultModeProgress(),
     test:      defaultModeProgress(),
     dictation: defaultModeProgress(),
+    game:      defaultModeProgress(),
   };
 }
 

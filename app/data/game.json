@@ -22,6 +22,9 @@
     { "id": "master-vf",       "emoji": "🦊", "name": "Mistr V/F",     "desc": "Všechny 3 režimy pro V/F splněny"        },
     { "id": "master-hch",      "emoji": "🐉", "name": "Mistr H/CH",    "desc": "Všechny 3 režimy pro H/CH splněny"       },
     { "id": "master-zs",       "emoji": "🌺", "name": "Mistr Z/S",     "desc": "Všechny 3 režimy pro Z/S splněny"        },
-    { "id": "champion",        "emoji": "🏆", "name": "Šampión",       "desc": "Získal/a jsi všechny odznaky kategorií"  }
+    { "id": "champion",        "emoji": "🏆", "name": "Šampión",       "desc": "Získal/a jsi všechny odznaky kategorií"  },
+    { "id": "math-first-game", "emoji": "⚡", "name": "Bleskový start", "desc": "Dokončil/a jsi první Rychlostní hru"       },
+    { "id": "math-combo",      "emoji": "🔥", "name": "Combo mistr",    "desc": "5 správných v řadě v Rychlostní hře"      },
+    { "id": "math-perfect",    "emoji": "🧮", "name": "Počítací stroj", "desc": "100 % správných odpovědí v Rychlostní hře"}
   ]
 }

@@ -1,0 +1,149 @@
+{
+  "id": "math-nasobilek",
+  "categories": [
+    {
+      "id": "cislo-2", "name": "Číslo 2", "emoji": "✌️", "color": "#00BCD4",
+      "unlockAfter": null, "type": "mixed",
+      "facts": [
+        {"id":"m2-1","a":2,"b":1,"product":2},   {"id":"d2-1","dividend":2,"divisor":2,"quotient":1},
+        {"id":"m2-2","a":2,"b":2,"product":4},   {"id":"d2-2","dividend":4,"divisor":2,"quotient":2},
+        {"id":"m2-3","a":2,"b":3,"product":6},   {"id":"d2-3","dividend":6,"divisor":2,"quotient":3},
+        {"id":"m2-4","a":2,"b":4,"product":8},   {"id":"d2-4","dividend":8,"divisor":2,"quotient":4},
+        {"id":"m2-5","a":2,"b":5,"product":10},  {"id":"d2-5","dividend":10,"divisor":2,"quotient":5},
+        {"id":"m2-6","a":2,"b":6,"product":12},  {"id":"d2-6","dividend":12,"divisor":2,"quotient":6},
+        {"id":"m2-7","a":2,"b":7,"product":14},  {"id":"d2-7","dividend":14,"divisor":2,"quotient":7},
+        {"id":"m2-8","a":2,"b":8,"product":16},  {"id":"d2-8","dividend":16,"divisor":2,"quotient":8},
+        {"id":"m2-9","a":2,"b":9,"product":18},  {"id":"d2-9","dividend":18,"divisor":2,"quotient":9},
+        {"id":"m2-10","a":2,"b":10,"product":20},{"id":"d2-10","dividend":20,"divisor":2,"quotient":10}
+      ]
+    },
+    {
+      "id": "cislo-3", "name": "Číslo 3", "emoji": "🌟", "color": "#4CAF50",
+      "unlockAfter": "cislo-2", "type": "mixed",
+      "facts": [
+        {"id":"m3-1","a":3,"b":1,"product":3},   {"id":"d3-1","dividend":3,"divisor":3,"quotient":1},
+        {"id":"m3-2","a":3,"b":2,"product":6},   {"id":"d3-2","dividend":6,"divisor":3,"quotient":2},
+        {"id":"m3-3","a":3,"b":3,"product":9},   {"id":"d3-3","dividend":9,"divisor":3,"quotient":3},
+        {"id":"m3-4","a":3,"b":4,"product":12},  {"id":"d3-4","dividend":12,"divisor":3,"quotient":4},
+        {"id":"m3-5","a":3,"b":5,"product":15},  {"id":"d3-5","dividend":15,"divisor":3,"quotient":5},
+        {"id":"m3-6","a":3,"b":6,"product":18},  {"id":"d3-6","dividend":18,"divisor":3,"quotient":6},
+        {"id":"m3-7","a":3,"b":7,"product":21},  {"id":"d3-7","dividend":21,"divisor":3,"quotient":7},
+        {"id":"m3-8","a":3,"b":8,"product":24},  {"id":"d3-8","dividend":24,"divisor":3,"quotient":8},
+        {"id":"m3-9","a":3,"b":9,"product":27},  {"id":"d3-9","dividend":27,"divisor":3,"quotient":9},
+        {"id":"m3-10","a":3,"b":10,"product":30},{"id":"d3-10","dividend":30,"divisor":3,"quotient":10}
+      ]
+    },
+    {
+      "id": "cislo-4", "name": "Číslo 4", "emoji": "🎲", "color": "#9C27B0",
+      "unlockAfter": "cislo-3", "type": "mixed",
+      "facts": [
+        {"id":"m4-1","a":4,"b":1,"product":4},   {"id":"d4-1","dividend":4,"divisor":4,"quotient":1},
+        {"id":"m4-2","a":4,"b":2,"product":8},   {"id":"d4-2","dividend":8,"divisor":4,"quotient":2},
+        {"id":"m4-3","a":4,"b":3,"product":12},  {"id":"d4-3","dividend":12,"divisor":4,"quotient":3},
+        {"id":"m4-4","a":4,"b":4,"product":16},  {"id":"d4-4","dividend":16,"divisor":4,"quotient":4},
+        {"id":"m4-5","a":4,"b":5,"product":20},  {"id":"d4-5","dividend":20,"divisor":4,"quotient":5},
+        {"id":"m4-6","a":4,"b":6,"product":24},  {"id":"d4-6","dividend":24,"divisor":4,"quotient":6},
+        {"id":"m4-7","a":4,"b":7,"product":28},  {"id":"d4-7","dividend":28,"divisor":4,"quotient":7},
+        {"id":"m4-8","a":4,"b":8,"product":32},  {"id":"d4-8","dividend":32,"divisor":4,"quotient":8},
+        {"id":"m4-9","a":4,"b":9,"product":36},  {"id":"d4-9","dividend":36,"divisor":4,"quotient":9},
+        {"id":"m4-10","a":4,"b":10,"product":40},{"id":"d4-10","dividend":40,"divisor":4,"quotient":10}
+      ]
+    },
+    {
+      "id": "cislo-5", "name": "Číslo 5", "emoji": "⭐", "color": "#FF9800",
+      "unlockAfter": "cislo-4", "type": "mixed",
+      "facts": [
+        {"id":"m5-1","a":5,"b":1,"product":5},   {"id":"d5-1","dividend":5,"divisor":5,"quotient":1},
+        {"id":"m5-2","a":5,"b":2,"product":10},  {"id":"d5-2","dividend":10,"divisor":5,"quotient":2},
+        {"id":"m5-3","a":5,"b":3,"product":15},  {"id":"d5-3","dividend":15,"divisor":5,"quotient":3},
+        {"id":"m5-4","a":5,"b":4,"product":20},  {"id":"d5-4","dividend":20,"divisor":5,"quotient":4},
+        {"id":"m5-5","a":5,"b":5,"product":25},  {"id":"d5-5","dividend":25,"divisor":5,"quotient":5},
+        {"id":"m5-6","a":5,"b":6,"product":30},  {"id":"d5-6","dividend":30,"divisor":5,"quotient":6},
+        {"id":"m5-7","a":5,"b":7,"product":35},  {"id":"d5-7","dividend":35,"divisor":5,"quotient":7},
+        {"id":"m5-8","a":5,"b":8,"product":40},  {"id":"d5-8","dividend":40,"divisor":5,"quotient":8},
+        {"id":"m5-9","a":5,"b":9,"product":45},  {"id":"d5-9","dividend":45,"divisor":5,"quotient":9},
+        {"id":"m5-10","a":5,"b":10,"product":50},{"id":"d5-10","dividend":50,"divisor":5,"quotient":10}
+      ]
+    },
+    {
+      "id": "cislo-6", "name": "Číslo 6", "emoji": "🎯", "color": "#F44336",
+      "unlockAfter": "cislo-5", "type": "mixed",
+      "facts": [
+        {"id":"m6-1","a":6,"b":1,"product":6},   {"id":"d6-1","dividend":6,"divisor":6,"quotient":1},
+        {"id":"m6-2","a":6,"b":2,"product":12},  {"id":"d6-2","dividend":12,"divisor":6,"quotient":2},
+        {"id":"m6-3","a":6,"b":3,"product":18},  {"id":"d6-3","dividend":18,"divisor":6,"quotient":3},
+        {"id":"m6-4","a":6,"b":4,"product":24},  {"id":"d6-4","dividend":24,"divisor":6,"quotient":4},
+        {"id":"m6-5","a":6,"b":5,"product":30},  {"id":"d6-5","dividend":30,"divisor":6,"quotient":5},
+        {"id":"m6-6","a":6,"b":6,"product":36},  {"id":"d6-6","dividend":36,"divisor":6,"quotient":6},
+        {"id":"m6-7","a":6,"b":7,"product":42},  {"id":"d6-7","dividend":42,"divisor":6,"quotient":7},
+        {"id":"m6-8","a":6,"b":8,"product":48},  {"id":"d6-8","dividend":48,"divisor":6,"quotient":8},
+        {"id":"m6-9","a":6,"b":9,"product":54},  {"id":"d6-9","dividend":54,"divisor":6,"quotient":9},
+        {"id":"m6-10","a":6,"b":10,"product":60},{"id":"d6-10","dividend":60,"divisor":6,"quotient":10}
+      ]
+    },
+    {
+      "id": "cislo-7", "name": "Číslo 7", "emoji": "🌈", "color": "#2196F3",
+      "unlockAfter": "cislo-6", "type": "mixed",
+      "facts": [
+        {"id":"m7-1","a":7,"b":1,"product":7},   {"id":"d7-1","dividend":7,"divisor":7,"quotient":1},
+        {"id":"m7-2","a":7,"b":2,"product":14},  {"id":"d7-2","dividend":14,"divisor":7,"quotient":2},
+        {"id":"m7-3","a":7,"b":3,"product":21},  {"id":"d7-3","dividend":21,"divisor":7,"quotient":3},
+        {"id":"m7-4","a":7,"b":4,"product":28},  {"id":"d7-4","dividend":28,"divisor":7,"quotient":4},
+        {"id":"m7-5","a":7,"b":5,"product":35},  {"id":"d7-5","dividend":35,"divisor":7,"quotient":5},
+        {"id":"m7-6","a":7,"b":6,"product":42},  {"id":"d7-6","dividend":42,"divisor":7,"quotient":6},
+        {"id":"m7-7","a":7,"b":7,"product":49},  {"id":"d7-7","dividend":49,"divisor":7,"quotient":7},
+        {"id":"m7-8","a":7,"b":8,"product":56},  {"id":"d7-8","dividend":56,"divisor":7,"quotient":8},
+        {"id":"m7-9","a":7,"b":9,"product":63},  {"id":"d7-9","dividend":63,"divisor":7,"quotient":9},
+        {"id":"m7-10","a":7,"b":10,"product":70},{"id":"d7-10","dividend":70,"divisor":7,"quotient":10}
+      ]
+    },
+    {
+      "id": "cislo-8", "name": "Číslo 8", "emoji": "🎱", "color": "#795548",
+      "unlockAfter": "cislo-7", "type": "mixed",
+      "facts": [
+        {"id":"m8-1","a":8,"b":1,"product":8},   {"id":"d8-1","dividend":8,"divisor":8,"quotient":1},
+        {"id":"m8-2","a":8,"b":2,"product":16},  {"id":"d8-2","dividend":16,"divisor":8,"quotient":2},
+        {"id":"m8-3","a":8,"b":3,"product":24},  {"id":"d8-3","dividend":24,"divisor":8,"quotient":3},
+        {"id":"m8-4","a":8,"b":4,"product":32},  {"id":"d8-4","dividend":32,"divisor":8,"quotient":4},
+        {"id":"m8-5","a":8,"b":5,"product":40},  {"id":"d8-5","dividend":40,"divisor":8,"quotient":5},
+        {"id":"m8-6","a":8,"b":6,"product":48},  {"id":"d8-6","dividend":48,"divisor":8,"quotient":6},
+        {"id":"m8-7","a":8,"b":7,"product":56},  {"id":"d8-7","dividend":56,"divisor":8,"quotient":7},
+        {"id":"m8-8","a":8,"b":8,"product":64},  {"id":"d8-8","dividend":64,"divisor":8,"quotient":8},
+        {"id":"m8-9","a":8,"b":9,"product":72},  {"id":"d8-9","dividend":72,"divisor":8,"quotient":9},
+        {"id":"m8-10","a":8,"b":10,"product":80},{"id":"d8-10","dividend":80,"divisor":8,"quotient":10}
+      ]
+    },
+    {
+      "id": "cislo-9", "name": "Číslo 9", "emoji": "🚀", "color": "#E91E63",
+      "unlockAfter": "cislo-8", "type": "mixed",
+      "facts": [
+        {"id":"m9-1","a":9,"b":1,"product":9},   {"id":"d9-1","dividend":9,"divisor":9,"quotient":1},
+        {"id":"m9-2","a":9,"b":2,"product":18},  {"id":"d9-2","dividend":18,"divisor":9,"quotient":2},
+        {"id":"m9-3","a":9,"b":3,"product":27},  {"id":"d9-3","dividend":27,"divisor":9,"quotient":3},
+        {"id":"m9-4","a":9,"b":4,"product":36},  {"id":"d9-4","dividend":36,"divisor":9,"quotient":4},
+        {"id":"m9-5","a":9,"b":5,"product":45},  {"id":"d9-5","dividend":45,"divisor":9,"quotient":5},
+        {"id":"m9-6","a":9,"b":6,"product":54},  {"id":"d9-6","dividend":54,"divisor":9,"quotient":6},
+        {"id":"m9-7","a":9,"b":7,"product":63},  {"id":"d9-7","dividend":63,"divisor":9,"quotient":7},
+        {"id":"m9-8","a":9,"b":8,"product":72},  {"id":"d9-8","dividend":72,"divisor":9,"quotient":8},
+        {"id":"m9-9","a":9,"b":9,"product":81},  {"id":"d9-9","dividend":81,"divisor":9,"quotient":9},
+        {"id":"m9-10","a":9,"b":10,"product":90},{"id":"d9-10","dividend":90,"divisor":9,"quotient":10}
+      ]
+    },
+    {
+      "id": "cislo-10", "name": "Číslo 10", "emoji": "🏆", "color": "#607D8B",
+      "unlockAfter": "cislo-9", "type": "mixed",
+      "facts": [
+        {"id":"m10-1","a":10,"b":1,"product":10},  {"id":"d10-1","dividend":10,"divisor":10,"quotient":1},
+        {"id":"m10-2","a":10,"b":2,"product":20},  {"id":"d10-2","dividend":20,"divisor":10,"quotient":2},
+        {"id":"m10-3","a":10,"b":3,"product":30},  {"id":"d10-3","dividend":30,"divisor":10,"quotient":3},
+        {"id":"m10-4","a":10,"b":4,"product":40},  {"id":"d10-4","dividend":40,"divisor":10,"quotient":4},
+        {"id":"m10-5","a":10,"b":5,"product":50},  {"id":"d10-5","dividend":50,"divisor":10,"quotient":5},
+        {"id":"m10-6","a":10,"b":6,"product":60},  {"id":"d10-6","dividend":60,"divisor":10,"quotient":6},
+        {"id":"m10-7","a":10,"b":7,"product":70},  {"id":"d10-7","dividend":70,"divisor":10,"quotient":7},
+        {"id":"m10-8","a":10,"b":8,"product":80},  {"id":"d10-8","dividend":80,"divisor":10,"quotient":8},
+        {"id":"m10-9","a":10,"b":9,"product":90},  {"id":"d10-9","dividend":90,"divisor":10,"quotient":9},
+        {"id":"m10-10","a":10,"b":10,"product":100},{"id":"d10-10","dividend":100,"divisor":10,"quotient":10}
+      ]
+    }
+  ]
+}

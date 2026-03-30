@@ -1224,6 +1224,272 @@ h1, h2, h3 {
 }
 
 /* ============================================================
+   SUBJECT CARDS – home screen
+   ============================================================ */
+.subject-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.subject-card {
+  background: var(--surface);
+  border: none;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  padding: 1.2rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  cursor: pointer;
+  touch-action: manipulation;
+  font-family: var(--font);
+  text-align: left;
+  width: 100%;
+  transition: transform var(--transition), box-shadow var(--transition);
+  user-select: none;
+  -webkit-user-select: none;
+}
+.subject-card:active {
+  transform: scale(0.98);
+  box-shadow: var(--shadow-sm);
+}
+
+.subject-card-emoji {
+  font-size: 2.2rem;
+  flex-shrink: 0;
+}
+
+.subject-card-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.subject-card-name {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.subject-card-desc {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  margin-top: 0.1rem;
+}
+
+.subject-card-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.subject-card-progress {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  background: var(--bg);
+  border-radius: var(--radius-sm);
+  padding: 0.2rem 0.55rem;
+}
+
+.subject-card-arrow {
+  font-size: 1.8rem;
+  color: var(--primary);
+  font-weight: 900;
+  line-height: 1;
+}
+
+/* ============================================================
+   SUBJECT SCREEN
+   ============================================================ */
+#subj-header {
+  background: linear-gradient(135deg, var(--primary) 0%, #6ba5ff 100%);
+  transition: background var(--transition);
+}
+
+#subj-header .btn-back {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+#subj-header .inner-title {
+  color: #fff;
+}
+
+/* ============================================================
+   MATH EXERCISE – question display & 2×2 options grid
+   ============================================================ */
+.math-question-display {
+  font-size: 2.4rem;
+  font-weight: 900;
+  color: var(--text);
+  letter-spacing: -0.02em;
+}
+
+.math-options {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  max-width: 340px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.math-options .option-btn {
+  font-size: 1.6rem;
+  min-height: 72px;
+  border-radius: var(--radius);
+}
+
+/* ============================================================
+   GAME SCREEN – Rychlostní hra
+   ============================================================ */
+#screen-game {
+  background: var(--bg);
+}
+
+.game-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+.game-header .btn-back {
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+.game-meta {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+}
+
+.game-question-count {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.game-score-val {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: var(--text);
+  line-height: 1;
+}
+
+.game-combo {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--warning);
+  min-width: 52px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* Timer bar */
+.game-timer-bar {
+  height: 7px;
+  background: var(--border);
+  flex-shrink: 0;
+}
+
+.game-timer-fill {
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, var(--success) 0%, var(--warning) 60%, var(--error) 100%);
+  background-size: 200% 100%;
+  background-position: 0% 0%;
+  transition: width 8s linear;
+}
+
+/* Game main */
+.game-main {
+  flex: 1;
+  padding: 2rem 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  align-items: center;
+  justify-content: center;
+}
+
+.game-question {
+  font-size: 3rem;
+  font-weight: 900;
+  text-align: center;
+  color: var(--text);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.game-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 340px;
+}
+
+.game-option-btn {
+  min-height: 80px;
+  font-size: 1.9rem;
+  font-weight: 900;
+  font-family: var(--font);
+  border: 3px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform var(--transition), border-color var(--transition), background var(--transition);
+  box-shadow: var(--shadow-sm);
+  user-select: none;
+  -webkit-user-select: none;
+}
+.game-option-btn:active:not(:disabled) {
+  transform: scale(0.95);
+}
+.game-option-btn.correct {
+  background: #e8faf0;
+  border-color: var(--success);
+  color: var(--success-dk);
+}
+.game-option-btn.wrong {
+  background: #ffecec;
+  border-color: var(--error);
+  color: var(--error-dk);
+}
+
+.game-feedback {
+  font-size: 1.05rem;
+  font-weight: 700;
+  text-align: center;
+  min-height: 44px;
+  padding: 0.6rem 1.2rem;
+  border-radius: var(--radius);
+  width: 100%;
+  max-width: 340px;
+}
+.game-feedback.correct {
+  background: #e8faf0;
+  color: var(--success-dk);
+}
+.game-feedback.wrong {
+  background: #ffecec;
+  color: var(--error-dk);
+}
+
+/* ============================================================
    UTILITIES
    ============================================================ */
 .hidden {

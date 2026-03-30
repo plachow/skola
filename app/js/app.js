@@ -3,7 +3,7 @@
  * Vanilla JS ES modules, hash-based routing
  */
 
-import { CATEGORIES, CATEGORY_MAP, WORD_MAP, BADGES, BADGE_MAP, getLevelInfo, loadData } from './data.js';
+import { CATEGORY_MAP, WORD_MAP, SUBJECTS, SUBJECTS_MAP, BADGES, BADGE_MAP, getLevelInfo, loadData } from './data.js';
 import {
   getAll, saveAll,
   getUser, saveUser,
@@ -12,7 +12,7 @@ import {
   getBadges, awardBadge,
   getProgress, saveProgress,
 } from './storage.js';
-import { speak, cancel, isSpeechAvailable } from './speech.js';
+import { speak, cancel } from './speech.js';
 
 /* ============================================================
    ROUTING
@@ -21,8 +21,10 @@ import { speak, cancel, isSpeechAvailable } from './speech.js';
 const SCREENS = {
   welcome:  document.getElementById('screen-welcome'),
   home:     document.getElementById('screen-home'),
+  subject:  document.getElementById('screen-subject'),
   category: document.getElementById('screen-category'),
   exercise: document.getElementById('screen-exercise'),
+  game:     document.getElementById('screen-game'),
   results:  document.getElementById('screen-results'),
 };
 
@@ -54,10 +56,12 @@ function handleRoute() {
   switch (route) {
     case 'welcome':  renderWelcome();               break;
     case 'home':     renderHome();                  break;
+    case 'subject':  renderSubject(params);         break;
     case 'category': renderCategory(params);        break;
     case 'exercise': renderExercise(params);        break;
+    case 'game':     renderGame(params);            break;
     case 'results':
-      // Results are rendered directly by finishSession().
+      // Results are rendered directly by finishSession()/finishGame().
       // On a hard refresh with #results hash, redirect home.
       navigate(getUser() ? 'home' : 'welcome');
       break;
@@ -77,7 +81,7 @@ function loadFooterVersion() {
       document.getElementById('app-footer').innerHTML =
         `Školníček ${version} &copy; Ing. Zdeněk Plachý, <a href="mailto:zdenek@plachy.cz">zdenek@plachy.cz</a>`;
     })
-    .catch(() => { /* version.json chybí v lokálním vývoji – nic nezobrazíme */ });
+    .catch(() => { /* version.json chybí v lokálním vývoji */ });
 }
 
 async function init() {
@@ -87,24 +91,19 @@ async function init() {
   const { route } = getRouteParams();
 
   if (!user) {
-    // First launch – always show welcome.
-    // If hash is already #welcome, hashchange won't fire, so call directly.
     if (route === 'welcome' || !route) {
       renderWelcome();
     } else {
       navigate('welcome');
     }
   } else {
-    // Returning user
     if (!route || route === 'welcome') {
-      // Redirect away from welcome; if hash is already #home hashchange won't fire
       if (route === 'home') {
         renderHome();
       } else {
         navigate('home');
       }
     } else {
-      // The current hash is meaningful – render it directly (no hashchange needed)
       handleRoute();
     }
   }
@@ -121,11 +120,9 @@ function renderWelcome() {
   const input    = document.getElementById('name-input');
   const btnStart = document.getElementById('btn-welcome-start');
 
-  // Reset field state
   input.value       = '';
   btnStart.disabled = true;
 
-  // Attach listeners only once (the form lives for the app lifetime)
   if (!_welcomeInitialized) {
     _welcomeInitialized = true;
 
@@ -153,7 +150,7 @@ function renderWelcome() {
 }
 
 /* ============================================================
-   HOME SCREEN
+   HOME SCREEN – subject picker
    ============================================================ */
 
 function renderHome() {
@@ -166,7 +163,7 @@ function renderHome() {
   const badges    = getBadges();
 
   // Header
-  document.getElementById('home-username').textContent   = user || '';
+  document.getElementById('home-username').textContent     = user || '';
   document.getElementById('home-streak-count').textContent = streak.count;
   document.getElementById('home-level-emoji').textContent  = levelInfo.current.emoji;
   document.getElementById('home-level-name').textContent   = levelInfo.current.name;
@@ -177,8 +174,8 @@ function renderHome() {
   xpBar.style.width = `${Math.round(levelInfo.progress * 100)}%`;
 
   // Rename button
-  const btnRename  = document.getElementById('btn-rename');
-  const nameEl     = document.getElementById('home-username');
+  const btnRename   = document.getElementById('btn-rename');
+  const nameEl      = document.getElementById('home-username');
   const renameInput = document.getElementById('rename-input');
 
   btnRename.onclick = () => {
@@ -195,9 +192,9 @@ function renderHome() {
         saveUser(val);
         nameEl.textContent = val;
       }
-      renameInput.style.display   = 'none';
-      nameEl.style.display        = '';
-      btnRename.style.display     = '';
+      renameInput.style.display = 'none';
+      nameEl.style.display      = '';
+      btnRename.style.display   = '';
       renameInput.removeEventListener('blur', commit);
     };
 
@@ -213,15 +210,8 @@ function renderHome() {
     };
   };
 
-  // Module button → category list
-  const btnModule = document.getElementById('btn-module-parovky');
-  btnModule.onclick = () => {
-    const grid = document.getElementById('section-categories');
-    grid.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  // Categories grid
-  renderCategoriesGrid();
+  // Subject cards
+  renderSubjectCards();
 
   // Badge showcase (last earned badge)
   const sectionBadges = document.getElementById('section-badges');
@@ -242,21 +232,71 @@ function renderHome() {
   }
 }
 
-function renderCategoriesGrid() {
-  const grid = document.getElementById('home-categories-grid');
+function renderSubjectCards() {
+  const container = document.getElementById('home-subject-cards');
+  container.innerHTML = '';
+
+  SUBJECTS.forEach(subject => {
+    // Count completions across all categories for this subject
+    const totalCats = subject.categories.length;
+    const doneCats  = subject.categories.filter(cat => {
+      const p = getProgress(cat.id);
+      return p.practice.completions > 0;
+    }).length;
+
+    const card = document.createElement('button');
+    card.className = 'subject-card';
+    card.innerHTML = `
+      <span class="subject-card-emoji">${subject.emoji}</span>
+      <div class="subject-card-info">
+        <div class="subject-card-name">${subject.name}</div>
+        <div class="subject-card-desc">${subject.desc}</div>
+      </div>
+      <div class="subject-card-right">
+        <div class="subject-card-progress">${doneCats} / ${totalCats}</div>
+        <span class="subject-card-arrow" aria-hidden="true">›</span>
+      </div>`;
+    card.setAttribute('aria-label', `${subject.name} – otevřít`);
+    card.addEventListener('click', () => navigate('subject', { id: subject.id }));
+    container.appendChild(card);
+  });
+}
+
+/* ============================================================
+   SUBJECT SCREEN – category list for one subject
+   ============================================================ */
+
+function renderSubject({ id }) {
+  if (!id || !SUBJECTS_MAP[id]) { navigate('home'); return; }
+
+  showScreen('subject');
+  const subject = SUBJECTS_MAP[id];
+
+  document.getElementById('subj-title').textContent = subject.name;
+  document.getElementById('subj-back').onclick = () => navigate('home');
+
+  // Header color per subject
+  const header = document.getElementById('subj-header');
+  if (id === 'math') {
+    header.style.background = 'linear-gradient(135deg, #FF9800 0%, #FF5722 100%)';
+  } else {
+    header.style.background = '';
+  }
+
+  const grid = document.getElementById('subj-categories-grid');
   grid.innerHTML = '';
 
-  CATEGORIES.forEach(cat => {
-    const prog    = getProgress(cat.id);
-    const locked  = isCategoryLocked(cat);
-    const btn     = document.createElement('button');
+  const modes = id === 'math' ? ['practice', 'test', 'game'] : ['practice', 'test', 'dictation'];
+
+  subject.categories.forEach(cat => {
+    const prog   = getProgress(cat.id);
+    const locked = isCategoryLocked(cat);
+    const btn    = document.createElement('button');
     btn.className = 'cat-card';
     btn.style.setProperty('--cat-color', cat.color);
 
-    // Progress dots: practice, test, dictation
-    const modes = ['practice', 'test', 'dictation'];
     const dotsHtml = modes.map(m => {
-      const p = prog[m];
+      const p = prog[m] || { completions: 0, bestStars: 0 };
       let cls = 'dot locked';
       if (!locked) {
         if (p.completions > 0) {
@@ -289,7 +329,6 @@ function renderCategoriesGrid() {
 function isCategoryLocked(cat) {
   if (!cat.unlockAfter) return false;
   const prereqProg = getProgress(cat.unlockAfter);
-  // Unlock when practice mode has at least one completion
   return prereqProg.practice.completions === 0;
 }
 
@@ -304,31 +343,34 @@ function renderCategory({ categoryId }) {
   }
 
   showScreen('category');
-  const cat  = CATEGORY_MAP[categoryId];
-  const prog = getProgress(categoryId);
+  const cat     = CATEGORY_MAP[categoryId];
+  const prog    = getProgress(categoryId);
+  const isMath  = cat.subjectId === 'math';
 
   // Header color
   const header = document.getElementById('cat-header');
-  header.style.setProperty('--cat-color-header', cat.color);
   header.style.background = cat.color;
 
   document.getElementById('cat-title').textContent      = cat.name;
   document.getElementById('cat-hero-emoji').textContent = cat.emoji;
-  document.getElementById('cat-hero-name').textContent  = cat.name + ' – Párové souhlásky';
-  document.getElementById('cat-hero-count').textContent = `${cat.words.length} slov`;
+  document.getElementById('cat-hero-name').textContent  = cat.name;
+  document.getElementById('cat-hero-count').textContent = isMath
+    ? `${cat.facts.filter(f => f.product !== undefined).length} × násobení  ·  ${cat.facts.filter(f => f.quotient !== undefined).length} ÷ dělení`
+    : `${cat.words.length} slov`;
 
-  // Back
-  document.getElementById('cat-back').onclick = () => navigate('home');
+  // Back → subject screen
+  document.getElementById('cat-back').onclick = () =>
+    navigate('subject', { id: cat.subjectId });
 
   // Mode unlock logic
-  const practiceScore = prog.practice.bestScore;
-  const testDone      = prog.test.completions > 0;
-  const testLocked    = practiceScore < 0.7;
-  const dictLocked    = !testDone;
+  const practiceScore  = prog.practice.bestScore;
+  const testDone       = prog.test.completions > 0;
+  const testLocked     = practiceScore < 0.7;
+  const thirdLocked    = !testDone;
 
   // Mode dots helper
   function makeDots(modeKey) {
-    const p = prog[modeKey];
+    const p = prog[modeKey] || { completions: 0, bestStars: 0 };
     return Array.from({ length: 3 }, (_, i) => {
       let cls = 'dot';
       if (p.completions > 0) {
@@ -338,59 +380,79 @@ function renderCategory({ categoryId }) {
     }).join('');
   }
 
-  document.getElementById('mode-dots-practice').innerHTML  = makeDots('practice');
-  document.getElementById('mode-dots-test').innerHTML      = makeDots('test');
-  document.getElementById('mode-dots-dictation').innerHTML = makeDots('dictation');
+  document.getElementById('mode-dots-practice').innerHTML = makeDots('practice');
+  document.getElementById('mode-dots-test').innerHTML     = makeDots('test');
 
-  // Lock icons
+  // Show correct 3rd button based on subject
+  const btnDictation = document.getElementById('mode-btn-dictation');
+  const btnGame      = document.getElementById('mode-btn-game');
+
+  if (isMath) {
+    btnDictation.classList.add('hidden');
+    btnGame.classList.remove('hidden');
+
+    document.getElementById('mode-dots-game').innerHTML = makeDots('game');
+    const lockGame = document.getElementById('mode-lock-game');
+    lockGame.style.display = thirdLocked ? '' : 'none';
+    btnGame.disabled = thirdLocked;
+    btnGame.onclick = thirdLocked ? null : () => navigate('game', { categoryId });
+
+    // Lock messages
+    document.getElementById('lock-message').classList.toggle('hidden', !testLocked);
+    document.getElementById('lock-message-dict').classList.add('hidden');
+    document.getElementById('lock-message-game').classList.toggle('hidden', testLocked || !thirdLocked);
+  } else {
+    btnDictation.classList.remove('hidden');
+    btnGame.classList.add('hidden');
+
+    document.getElementById('mode-dots-dictation').innerHTML = makeDots('dictation');
+    const lockDict = document.getElementById('mode-lock-dictation');
+    lockDict.style.display = thirdLocked ? '' : 'none';
+    btnDictation.disabled = thirdLocked;
+    btnDictation.onclick = thirdLocked ? null : () => navigate('exercise', { categoryId, mode: 'dictation' });
+
+    document.getElementById('lock-message').classList.toggle('hidden', !testLocked);
+    document.getElementById('lock-message-dict').classList.toggle('hidden', testLocked || !thirdLocked);
+    document.getElementById('lock-message-game').classList.add('hidden');
+  }
+
+  // Lock icons & buttons for test
   const lockTest = document.getElementById('mode-lock-test');
-  const lockDict = document.getElementById('mode-lock-dictation');
+  const btnTest  = document.getElementById('mode-btn-test');
   lockTest.style.display = testLocked ? '' : 'none';
-  lockDict.style.display = dictLocked ? '' : 'none';
-
-  const btnTest = document.getElementById('mode-btn-test');
-  const btnDict = document.getElementById('mode-btn-dictation');
   btnTest.disabled = testLocked;
-  btnDict.disabled = dictLocked;
-
-  // Lock messages
-  const msgTest = document.getElementById('lock-message');
-  const msgDict = document.getElementById('lock-message-dict');
-  msgTest.classList.toggle('hidden', !testLocked);
-  msgDict.classList.toggle('hidden', !dictLocked);
 
   // Mode buttons
   const btnPractice = document.getElementById('mode-btn-practice');
   btnPractice.onclick = () => navigate('exercise', { categoryId, mode: 'practice' });
   btnTest.onclick     = testLocked ? null : () => navigate('exercise', { categoryId, mode: 'test' });
-  btnDict.onclick     = dictLocked ? null : () => navigate('exercise', { categoryId, mode: 'dictation' });
 }
 
 /* ============================================================
    SESSION STATE
    ============================================================ */
 
-/** Current active session (null when no exercise running) */
+/** Current active exercise session (null when no exercise running) */
 let session = null;
 
 function createSession(categoryId, mode) {
   const cat   = CATEGORY_MAP[categoryId];
-  const words = [...cat.words];
+  const isMath = cat.subjectId === 'math';
+  const items = isMath ? cat.facts : cat.words;
 
   return {
     mode,
     categoryId,
     cat,
-    // Shuffle words at start
-    queue: shuffleArray(words.slice()),
-    // For test/dictation: fixed ordered list
-    testList: mode !== 'practice' ? shuffleArray(words.slice()) : null,
+    isMath,
+    queue:     shuffleArray(items.slice()),
+    testList:  mode !== 'practice' ? shuffleArray(items.slice()) : null,
     testIndex: 0,
-    wordPerf: Object.fromEntries(words.map(w => [w.id, 0])),
-    answered: [],        // { wordId, correct, firstAttempt }
-    xpEarned: 0,
-    answerStreak: 0,     // consecutive correct answers (for streak bonus)
-    currentWord: null,
+    wordPerf:  Object.fromEntries(items.map(w => [w.id, 0])),
+    answered:  [],
+    xpEarned:  0,
+    answerStreak:  0,
+    currentWord:   null,
     pendingAdvance: null,
   };
 }
@@ -405,12 +467,10 @@ function renderExercise({ categoryId, mode }) {
     return;
   }
 
-  cancel(); // Stop any ongoing speech
+  cancel();
   showScreen('exercise');
-
   session = createSession(categoryId, mode);
 
-  // Back button
   document.getElementById('ex-back').onclick = () => {
     cancel();
     clearPendingAdvance();
@@ -443,7 +503,6 @@ function showNextQuizWord() {
     }
     word = s.queue[0];
   } else {
-    // test
     if (s.testIndex >= s.testList.length) {
       finishSession();
       return;
@@ -459,127 +518,124 @@ function renderQuizWord(word) {
   const s   = session;
   const cat = s.cat;
 
-  // Sentence
   const sentenceEl = document.getElementById('ex-sentence');
-  sentenceEl.innerHTML = renderSentenceHtml(word.sentence, word.blank);
+  const wordWrap   = document.getElementById('ex-word-wrap');
+  const wordEl     = document.getElementById('ex-word');
+  const hintBar    = document.getElementById('ex-hint-bar');
+  const hintPanel  = document.getElementById('hint-panel');
+  const btnHint    = document.getElementById('btn-hint');
+  const feedbackEl = document.getElementById('ex-feedback');
+  const optionsEl  = document.getElementById('ex-options');
 
-  // Word with blank
-  const wordEl = document.getElementById('ex-word');
-  wordEl.innerHTML = renderBlankWord(word.blank);
+  feedbackEl.textContent = '';
+  feedbackEl.className   = 'ex-feedback';
 
-  // Hint (practice only)
-  const hintBar   = document.getElementById('ex-hint-bar');
-  const hintPanel = document.getElementById('hint-panel');
-  const btnHint   = document.getElementById('btn-hint');
+  if (s.isMath) {
+    // ---- Math layout ----
+    const question = getMathQuestion(word);
+    const correct  = getMathAnswer(word);
 
-  if (s.mode === 'practice') {
-    hintBar.style.display = '';
+    sentenceEl.innerHTML = `<span class="math-question-display">${question}</span>`;
+    wordWrap.style.display = 'none';
+    hintBar.style.display  = 'none';
+
+    const options = generateMathOptions(correct);
+    optionsEl.innerHTML = '';
+    optionsEl.className = 'ex-options math-options';
+
+    options.forEach(num => {
+      const btn = document.createElement('button');
+      btn.className = 'option-btn';
+      btn.textContent = num;
+      btn.setAttribute('aria-label', `Odpověď ${num}`);
+      btn.addEventListener('click', () => onMathQuizAnswer(num, word));
+      optionsEl.appendChild(btn);
+    });
+
+  } else {
+    // ---- CS layout ----
+    wordWrap.style.display = '';
+    hintBar.style.display  = '';
+
+    sentenceEl.innerHTML = renderSentenceHtml(word.sentence, word.blank);
+    wordEl.innerHTML     = renderBlankWord(word.blank);
+    optionsEl.className  = 'ex-options';
+
     hintPanel.classList.add('hidden');
     hintPanel.textContent = '';
-    btnHint.onclick = () => {
-      hintPanel.textContent = `💡 Pomůže ti: ${word.proof}`;
-      hintPanel.classList.remove('hidden');
-    };
-  } else {
-    hintBar.style.display = 'none';
+
+    if (s.mode === 'practice') {
+      btnHint.onclick = () => {
+        hintPanel.textContent = `💡 Pomůže ti: ${word.proof}`;
+        hintPanel.classList.remove('hidden');
+      };
+    } else {
+      hintBar.style.display = 'none';
+    }
+
+    const pair = [...cat.pair];
+    shuffleArray(pair);
+    optionsEl.innerHTML = '';
+
+    pair.forEach(letter => {
+      const btn = document.createElement('button');
+      btn.className   = 'option-btn';
+      btn.textContent = letter;
+      btn.setAttribute('aria-label', `Písmeno ${letter}`);
+      btn.addEventListener('click', () => onQuizAnswer(letter, word));
+      optionsEl.appendChild(btn);
+    });
   }
 
-  // Feedback area
-  const feedback = document.getElementById('ex-feedback');
-  feedback.textContent = '';
-  feedback.className   = 'ex-feedback';
-
-  // Option buttons – always two choices: the pair letters
-  const optionsEl = document.getElementById('ex-options');
-  optionsEl.innerHTML = '';
-
-  // Shuffle so correct answer isn't always in same position
-  const pair = [...cat.pair];
-  shuffleArray(pair);
-
-  pair.forEach(letter => {
-    const btn = document.createElement('button');
-    btn.className   = 'option-btn';
-    btn.textContent = letter;
-    btn.setAttribute('aria-label', `Písmeno ${letter}`);
-    btn.addEventListener('click', () => onQuizAnswer(letter, word));
-    optionsEl.appendChild(btn);
-  });
-
-  // Progress
   updateQuizProgress();
   updateStreakDisplay();
 }
 
-function onQuizAnswer(chosenLetter, word) {
-  const s = session;
-  if (s.pendingAdvance) return; // Debounce – ignore taps during feedback
+/* ---- Math quiz answer ----------------------------------- */
 
-  const isCorrect = chosenLetter.toLowerCase() === word.answer.toLowerCase();
+function onMathQuizAnswer(chosen, word) {
+  const s = session;
+  if (s.pendingAdvance) return;
+
+  const correct    = getMathAnswer(word);
+  const isCorrect  = chosen === correct;
   const isFirstAttempt = !s.answered.find(a => a.wordId === word.id);
 
-  // Record answer
   s.answered.push({ wordId: word.id, correct: isCorrect, firstAttempt: isFirstAttempt });
 
-  // Update streak counter
-  if (isCorrect) {
-    s.answerStreak++;
-  } else {
-    s.answerStreak = 0;
-  }
-
+  if (isCorrect) s.answerStreak++;
+  else           s.answerStreak = 0;
   updateStreakDisplay();
 
-  // Show visual feedback
   const optionBtns = document.querySelectorAll('.option-btn');
+  const feedbackEl = document.getElementById('ex-feedback');
   const wordEl     = document.getElementById('ex-word');
   const hintPanel  = document.getElementById('hint-panel');
 
-  // Disable all options
   optionBtns.forEach(btn => { btn.disabled = true; });
-
-  // Mark correct/wrong on buttons
   optionBtns.forEach(btn => {
-    if (btn.textContent.toLowerCase() === word.answer.toLowerCase()) {
+    if (Number(btn.textContent) === correct) {
       btn.classList.add('correct');
-    } else if (btn.textContent.toLowerCase() === chosenLetter.toLowerCase() && !isCorrect) {
+    } else if (Number(btn.textContent) === chosen && !isCorrect) {
       btn.classList.add('wrong');
     }
   });
 
-  // Fill the blank in the word display
-  const blankEl = wordEl.querySelector('.blank');
-  if (blankEl) {
-    blankEl.textContent = isCorrect ? chosenLetter : word.answer;
-    blankEl.classList.add(isCorrect ? 'filled-correct' : 'filled-wrong');
-  }
-
-  // Animate word
   wordEl.classList.remove('bounce', 'shake');
-  // Force reflow
   void wordEl.offsetWidth;
   wordEl.classList.add(isCorrect ? 'bounce' : 'shake');
 
-  // Feedback text
-  const feedbackEl = document.getElementById('ex-feedback');
   if (isCorrect) {
     feedbackEl.textContent = randomCorrectMessage();
     feedbackEl.className   = 'ex-feedback correct';
   } else {
-    feedbackEl.textContent = `Správně je: ${word.word}`;
+    feedbackEl.textContent = `Správně je: ${correct}`;
     feedbackEl.className   = 'ex-feedback wrong';
-    // Show proof hint automatically on wrong in practice
-    if (s.mode === 'practice') {
-      hintPanel.textContent = `💡 Pomůže ti: ${word.proof}`;
-      hintPanel.classList.remove('hidden');
-    }
   }
 
-  // XP calculation (deferred to graduation / test answer)
   if (s.mode === 'practice') {
     handlePracticeQueue(word, isCorrect);
-  } else if (s.mode === 'test') {
-    // XP for test: 20 per correct, with streak bonus
+  } else {
     if (isCorrect) {
       let xp = 20;
       if (s.answerStreak >= 3) xp += 5;
@@ -588,7 +644,75 @@ function onQuizAnswer(chosenLetter, word) {
     s.testIndex++;
   }
 
-  // Schedule advance
+  const delay = isCorrect ? 1200 : 2000;
+  s.pendingAdvance = setTimeout(() => {
+    s.pendingAdvance = null;
+    showNextQuizWord();
+  }, delay);
+}
+
+/* ---- CS quiz answer ------------------------------------- */
+
+function onQuizAnswer(chosenLetter, word) {
+  const s = session;
+  if (s.pendingAdvance) return;
+
+  const isCorrect      = chosenLetter.toLowerCase() === word.answer.toLowerCase();
+  const isFirstAttempt = !s.answered.find(a => a.wordId === word.id);
+
+  s.answered.push({ wordId: word.id, correct: isCorrect, firstAttempt: isFirstAttempt });
+
+  if (isCorrect) s.answerStreak++;
+  else           s.answerStreak = 0;
+  updateStreakDisplay();
+
+  const optionBtns = document.querySelectorAll('.option-btn');
+  const wordEl     = document.getElementById('ex-word');
+  const hintPanel  = document.getElementById('hint-panel');
+
+  optionBtns.forEach(btn => { btn.disabled = true; });
+  optionBtns.forEach(btn => {
+    if (btn.textContent.toLowerCase() === word.answer.toLowerCase()) {
+      btn.classList.add('correct');
+    } else if (btn.textContent.toLowerCase() === chosenLetter.toLowerCase() && !isCorrect) {
+      btn.classList.add('wrong');
+    }
+  });
+
+  const blankEl = wordEl.querySelector('.blank');
+  if (blankEl) {
+    blankEl.textContent = isCorrect ? chosenLetter : word.answer;
+    blankEl.classList.add(isCorrect ? 'filled-correct' : 'filled-wrong');
+  }
+
+  wordEl.classList.remove('bounce', 'shake');
+  void wordEl.offsetWidth;
+  wordEl.classList.add(isCorrect ? 'bounce' : 'shake');
+
+  const feedbackEl = document.getElementById('ex-feedback');
+  if (isCorrect) {
+    feedbackEl.textContent = randomCorrectMessage();
+    feedbackEl.className   = 'ex-feedback correct';
+  } else {
+    feedbackEl.textContent = `Správně je: ${word.word}`;
+    feedbackEl.className   = 'ex-feedback wrong';
+    if (s.mode === 'practice') {
+      hintPanel.textContent = `💡 Pomůže ti: ${word.proof}`;
+      hintPanel.classList.remove('hidden');
+    }
+  }
+
+  if (s.mode === 'practice') {
+    handlePracticeQueue(word, isCorrect);
+  } else {
+    if (isCorrect) {
+      let xp = 20;
+      if (s.answerStreak >= 3) xp += 5;
+      s.xpEarned += xp;
+    }
+    s.testIndex++;
+  }
+
   const delay = isCorrect ? 1200 : 2000;
   s.pendingAdvance = setTimeout(() => {
     s.pendingAdvance = null;
@@ -598,26 +722,21 @@ function onQuizAnswer(chosenLetter, word) {
 
 function handlePracticeQueue(word, isCorrect) {
   const s = session;
-  // Remove current word from front of queue
   s.queue.shift();
 
   if (isCorrect) {
     s.wordPerf[word.id] = (s.wordPerf[word.id] || 0) + 1;
     if (s.wordPerf[word.id] >= 2) {
-      // Graduated – XP reward
       let xp = 10;
       if (s.answerStreak >= 3) xp += 5;
       s.xpEarned += xp;
       showXpFlash(`+${xp} XP`);
-      // Don't add back to queue
     } else {
-      // Re-insert at middle of remaining queue
       const mid = Math.max(1, Math.floor(s.queue.length / 2));
       s.queue.splice(mid, 0, word);
     }
   } else {
     s.wordPerf[word.id] = 0;
-    // Re-insert near end (but not last to avoid always being last)
     const pos = Math.max(0, s.queue.length - 1);
     s.queue.splice(pos, 0, word);
   }
@@ -628,11 +747,10 @@ function updateQuizProgress() {
   let current, total;
 
   if (s.mode === 'practice') {
-    // Count unique graduated words
-    const graduated = Object.values(s.wordPerf).filter(streak => streak >= 2).length;
-    const totalWords = s.cat.words.length;
+    const graduated = Object.values(s.wordPerf).filter(v => v >= 2).length;
+    const totalItems = s.isMath ? s.cat.facts.length : s.cat.words.length;
     current = graduated;
-    total   = totalWords;
+    total   = totalItems;
     document.getElementById('ex-progress-label').textContent = `Zvládnuto: ${current} / ${total}`;
   } else {
     current = s.testIndex;
@@ -644,7 +762,7 @@ function updateQuizProgress() {
   document.getElementById('ex-progress-fill').style.width = `${pct}%`;
 }
 
-/* ---- Dictation Mode ------------------------------------- */
+/* ---- Dictation Mode (CS only) -------------------------- */
 
 function startDictationMode() {
   document.getElementById('ex-main-quiz').classList.add('hidden');
@@ -668,11 +786,9 @@ function showNextDictationWord() {
 function renderDictationWord(word) {
   const s = session;
 
-  // Sentence (shown without blank – gives context)
   const sentEl = document.getElementById('ex-dict-sentence');
   sentEl.innerHTML = renderSentenceHtml(word.sentence, word.blank);
 
-  // Clear input
   const inputEl = document.getElementById('dict-input');
   inputEl.value = '';
   inputEl.disabled = false;
@@ -685,31 +801,22 @@ function renderDictationWord(word) {
   submitBtn.disabled = false;
   submitBtn.textContent = 'Zkontrolovat ✓';
 
-  // Speaker button – speak word on load (safe on desktop; iOS needs tap)
   const speakerBtn = document.getElementById('btn-speaker');
-  // Remove old listener by cloning
   const newSpeaker = speakerBtn.cloneNode(true);
   speakerBtn.parentNode.replaceChild(newSpeaker, speakerBtn);
   const fullSentence = word.sentence.replace(word.blank, word.word).replace(/_/g, word.answer);
-  newSpeaker.addEventListener('click', () => {
-    speak(fullSentence);
-  });
+  newSpeaker.addEventListener('click', () => { speak(fullSentence); });
 
-  // Auto-speak on desktop/Android (not iOS – no user gesture yet for initial load)
-  // We try to speak; it will silently fail on iOS until a gesture is made
   setTimeout(() => speak(fullSentence), 300);
 
-  // Submit handler
   const newSubmit = submitBtn.cloneNode(true);
   submitBtn.parentNode.replaceChild(newSubmit, submitBtn);
   newSubmit.addEventListener('click', () => onDictationSubmit(word));
 
-  // Enter key on input
   inputEl.onkeydown = (e) => {
     if (e.key === 'Enter') onDictationSubmit(word);
   };
 
-  // Progress
   const graduated = Object.values(s.wordPerf).filter(v => v >= 2).length;
   const total     = s.cat.words.length;
   document.getElementById('ex-progress-label').textContent = `Zvládnuto: ${graduated} / ${total}`;
@@ -717,8 +824,6 @@ function renderDictationWord(word) {
   document.getElementById('ex-progress-fill').style.width = `${pct}%`;
 
   updateStreakDisplay();
-
-  // Focus input
   inputEl.focus();
 }
 
@@ -730,13 +835,12 @@ function onDictationSubmit(word) {
   const feedbackEl = document.getElementById('ex-dict-feedback');
   const submitBtn  = document.getElementById('btn-dict-submit');
 
-  const userInput  = inputEl.value.trim();
+  const userInput = inputEl.value.trim();
   if (!userInput) return;
 
-  // Accept base form (word.word) OR the inflected form as it appears in the sentence
   const wordFormRe = new RegExp(word.blank.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '[a-záčďéěíňóřšťúůýž]*', 'i');
-  const wordFormMatch = word.sentence.match(wordFormRe);
-  const wordInSentence = wordFormMatch ? wordFormMatch[0].replace('_', word.answer) : word.word;
+  const wordFormMatch   = word.sentence.match(wordFormRe);
+  const wordInSentence  = wordFormMatch ? wordFormMatch[0].replace('_', word.answer) : word.word;
   const isCorrect = userInput.toLowerCase() === word.word.toLowerCase()
                  || userInput.toLowerCase() === wordInSentence.toLowerCase();
 
@@ -754,11 +858,9 @@ function onDictationSubmit(word) {
   }
 
   updateStreakDisplay();
-
-  inputEl.disabled  = true;
+  inputEl.disabled   = true;
   submitBtn.disabled = true;
 
-  // Queue management (same as practice)
   s.queue.shift();
   if (isCorrect) {
     s.wordPerf[word.id] = (s.wordPerf[word.id] || 0) + 1;
@@ -777,7 +879,6 @@ function onDictationSubmit(word) {
     s.queue.splice(pos, 0, word);
   }
 
-  // Update progress bar
   const graduated = Object.values(s.wordPerf).filter(v => v >= 2).length;
   const total     = s.cat.words.length;
   const pct = total > 0 ? (graduated / total) * 100 : 0;
@@ -805,45 +906,36 @@ function finishSession() {
   const s = session;
   cancel();
 
-  // Calculate results
-  const totalWords      = s.cat.words.length;
-  const firstAttempts   = s.answered.filter(a => a.firstAttempt);
-  const correctFirst    = firstAttempts.filter(a => a.correct);
-  const score           = firstAttempts.length > 0 ? correctFirst.length / firstAttempts.length : 0;
-  const stars           = calcStars(score);
-  const wrongAnswers    = firstAttempts
+  const items = s.isMath ? s.cat.facts : s.cat.words;
+  const firstAttempts  = s.answered.filter(a => a.firstAttempt);
+  const correctFirst   = firstAttempts.filter(a => a.correct);
+  const score          = firstAttempts.length > 0 ? correctFirst.length / firstAttempts.length : 0;
+  const stars          = calcStars(score);
+
+  // Wrong answers
+  const wrongAnswers = firstAttempts
     .filter(a => !a.correct)
     .map(a => WORD_MAP[a.wordId])
     .filter(Boolean);
 
-  // 3-star bonus XP
   if (stars === 3) s.xpEarned += 50;
 
-  // Save progress
-  saveProgress(s.categoryId, s.mode, {
-    bestScore: score,
-    bestStars: stars,
-  });
-
-  // Update streak
+  saveProgress(s.categoryId, s.mode, { bestScore: score, bestStars: stars });
   updateStreak();
-
-  // Add XP
   const xpResult = addXP(s.xpEarned);
 
-  // Check and award badges
   const newlyEarnedBadges = checkAndAwardBadges(s, score, stars, wrongAnswers.length);
 
-  // Navigate to results
   renderResults({
     mode:       s.mode,
     categoryId: s.categoryId,
     cat:        s.cat,
+    isMath:     s.isMath,
     score,
     stars,
-    totalWords: firstAttempts.length || totalWords,
+    totalWords:   firstAttempts.length || items.length,
     correctCount: correctFirst.length,
-    xpEarned:   s.xpEarned,
+    xpEarned:     s.xpEarned,
     xpResult,
     wrongAnswers,
     newlyEarnedBadges,
@@ -864,42 +956,33 @@ function checkAndAwardBadges(s, score, stars, wrongCount) {
     if (awardBadge(id)) newBadges.push(id);
   }
 
-  // First session ever
   tryAward('first-session');
 
-  // 3-star
   if (stars === 3) tryAward('three-stars');
-
-  // Never give up (completed despite 3+ wrongs)
   if (wrongCount >= 3) tryAward('never-give-up');
-
-  // Perfect test
   if (s.mode === 'test' && score === 1) tryAward('perfect-test');
-
-  // Dictation
   if (s.mode === 'dictation') tryAward('first-dictation');
-
-  // Hot streak (5 correct in a row during session)
   if (s.answerStreak >= 5 || maxStreakInSession(s.answered) >= 5) tryAward('hot-streak');
 
-  // Category master badges
-  const catProgress = getProgress(s.categoryId);
-  const allModeDone = ['practice', 'test', 'dictation'].every(
-    m => catProgress[m].completions > 0
-  );
-  if (allModeDone) {
-    const masterMap = {
-      'b-p': 'master-bp', 'd-t': 'master-dt', 'g-k': 'master-gk',
-      'v-f': 'master-vf', 'h-ch': 'master-hch', 'z-s': 'master-zs',
-    };
-    if (masterMap[s.categoryId]) tryAward(masterMap[s.categoryId]);
-  }
+  if (!s.isMath) {
+    // CS-specific: category master badges
+    const catProgress = getProgress(s.categoryId);
+    const allModeDone = ['practice', 'test', 'dictation'].every(
+      m => catProgress[m].completions > 0
+    );
+    if (allModeDone) {
+      const masterMap = {
+        'b-p': 'master-bp', 'd-t': 'master-dt', 'g-k': 'master-gk',
+        'v-f': 'master-vf', 'h-ch': 'master-hch', 'z-s': 'master-zs',
+      };
+      if (masterMap[s.categoryId]) tryAward(masterMap[s.categoryId]);
+    }
 
-  // Champion: all master badges earned
-  const masterBadgeIds = ['master-bp','master-dt','master-gk','master-vf','master-hch','master-zs'];
-  const earnedBadges   = getBadges();
-  if (masterBadgeIds.every(id => earnedBadges.includes(id))) {
-    tryAward('champion');
+    const masterBadgeIds = ['master-bp','master-dt','master-gk','master-vf','master-hch','master-zs'];
+    const earnedBadges   = getBadges();
+    if (masterBadgeIds.every(id => earnedBadges.includes(id))) {
+      tryAward('champion');
+    }
   }
 
   return newBadges;
@@ -918,25 +1001,23 @@ function maxStreakInSession(answered) {
    RESULTS SCREEN
    ============================================================ */
 
-function renderResults({ mode, categoryId, cat, score, stars, totalWords, correctCount, xpEarned, xpResult, wrongAnswers, newlyEarnedBadges }) {
+function renderResults({ mode, categoryId, cat, isMath, score, stars, totalWords, correctCount, xpEarned, xpResult, wrongAnswers, newlyEarnedBadges, gameScore }) {
   showScreen('results');
 
-  // Title
-  const titles = { practice: 'Procvičování', test: 'Test', dictation: 'Diktát' };
+  const titles = { practice: 'Procvičování', test: 'Test', dictation: 'Diktát', game: 'Rychlostní hra' };
   document.getElementById('results-title').textContent = titles[mode] || 'Výsledky';
 
-  // Stars (animate with delays)
+  // Stars
   const starEls = [
     document.getElementById('star-1'),
     document.getElementById('star-2'),
     document.getElementById('star-3'),
   ];
-  starEls.forEach((el, i) => {
+  starEls.forEach(el => {
     el.className = 'star-item';
     el.textContent = '⭐';
     el.style.animationDelay = '';
   });
-
   setTimeout(() => {
     starEls.forEach((el, i) => {
       if (i < stars) {
@@ -944,20 +1025,23 @@ function renderResults({ mode, categoryId, cat, score, stars, totalWords, correc
         el.classList.add('earned');
       } else {
         el.classList.add('empty');
-        el.style.opacity = '0.25';
+        el.style.opacity   = '0.25';
         el.style.transform = 'scale(1)';
-        el.style.filter = 'grayscale(1)';
+        el.style.filter    = 'grayscale(1)';
       }
     });
   }, 100);
 
-  // Score
-  document.getElementById('results-score').textContent =
-    stars === 0
-      ? `${correctCount} z ${totalWords} správně – Zkus to znovu!`
-      : `${correctCount} z ${totalWords} správně`;
+  // Score text
+  if (mode === 'game') {
+    document.getElementById('results-score').textContent = `Skóre: ${gameScore} bodů`;
+  } else {
+    document.getElementById('results-score').textContent =
+      stars === 0
+        ? `${correctCount} z ${totalWords} správně – Zkus to znovu!`
+        : `${correctCount} z ${totalWords} správně`;
+  }
 
-  // XP gained
   document.getElementById('xp-gained').textContent = `+${xpEarned} XP získáno!`;
 
   // Level up banner
@@ -966,13 +1050,11 @@ function renderResults({ mode, categoryId, cat, score, stars, totalWords, correc
     levelBanner.classList.remove('hidden');
     document.getElementById('level-up-emoji').textContent = xpResult.newLevelData.emoji;
     document.getElementById('level-up-name').textContent  = xpResult.newLevelData.name;
-    // Confetti for level up
     setTimeout(() => launchConfetti(), 400);
   } else {
     levelBanner.classList.add('hidden');
   }
 
-  // Confetti for 3 stars
   if (stars === 3 && !xpResult.didLevelUp) {
     setTimeout(() => launchConfetti(), 600);
   }
@@ -1000,34 +1082,45 @@ function renderResults({ mode, categoryId, cat, score, stars, totalWords, correc
   // Wrong answers review
   const reviewEl = document.getElementById('wrong-review');
   reviewEl.innerHTML = '';
-  if (wrongAnswers.length > 0) {
+  if (wrongAnswers.length > 0 && mode !== 'game') {
     const title = document.createElement('div');
-    title.className     = 'wrong-review-title';
-    title.textContent   = 'Chybné odpovědi';
+    title.className   = 'wrong-review-title';
+    title.textContent = 'Chybné odpovědi';
     reviewEl.appendChild(title);
 
     wrongAnswers.forEach(w => {
+      if (!w) return;
       const item = document.createElement('div');
       item.className = 'wrong-item';
-      item.innerHTML = `
-        <span>${w.blank.replace('_', '<span style="color:var(--error-dk)">_</span>')}</span>
-        <span class="wrong-item-answer">→ ${w.word}</span>`;
+      if (w.product !== undefined) {
+        item.innerHTML = `<span>${w.a} × ${w.b}</span><span class="wrong-item-answer">= ${w.product}</span>`;
+      } else if (w.quotient !== undefined) {
+        item.innerHTML = `<span>${w.dividend} ÷ ${w.divisor}</span><span class="wrong-item-answer">= ${w.quotient}</span>`;
+      } else {
+        item.innerHTML = `
+          <span>${w.blank.replace('_', '<span style="color:var(--error-dk)">_</span>')}</span>
+          <span class="wrong-item-answer">→ ${w.word}</span>`;
+      }
       reviewEl.appendChild(item);
     });
   }
 
-  // Buttons
+  // Action buttons
   document.getElementById('btn-results-back').onclick = () => {
     session = null;
     navigate('home');
   };
-  document.getElementById('btn-results-retry').onclick = () => {
-    navigate('exercise', { categoryId, mode });
-  };
 
-  // "Přejít na Test" if test newly unlocked
+  if (mode === 'game') {
+    document.getElementById('btn-results-retry').onclick = () => navigate('game', { categoryId });
+  } else {
+    document.getElementById('btn-results-retry').onclick = () => navigate('exercise', { categoryId, mode });
+  }
+
+  // "Next mode" button
   const btnNext = document.getElementById('btn-results-next');
-  const catProgress   = getProgress(categoryId);
+  const catProgress = getProgress(categoryId);
+
   const testJustUnlocked =
     mode === 'practice' &&
     catProgress.practice.bestScore >= 0.7 &&
@@ -1035,8 +1128,13 @@ function renderResults({ mode, categoryId, cat, score, stars, totalWords, correc
 
   if (testJustUnlocked) {
     btnNext.classList.remove('hidden');
+    btnNext.textContent = 'Přejít na Test 🎯';
     btnNext.onclick = () => navigate('exercise', { categoryId, mode: 'test' });
-  } else if (mode === 'test' && catProgress.dictation.completions === 0) {
+  } else if (mode === 'test' && isMath && (catProgress.game || { completions: 0 }).completions === 0) {
+    btnNext.classList.remove('hidden');
+    btnNext.textContent = 'Hrát Rychlostní hru ⚡';
+    btnNext.onclick = () => navigate('game', { categoryId });
+  } else if (mode === 'test' && !isMath && catProgress.dictation.completions === 0) {
     btnNext.classList.remove('hidden');
     btnNext.textContent = 'Přejít na Diktát 🎙️';
     btnNext.onclick = () => navigate('exercise', { categoryId, mode: 'dictation' });
@@ -1046,26 +1144,275 @@ function renderResults({ mode, categoryId, cat, score, stars, totalWords, correc
 }
 
 /* ============================================================
+   MATH GAME – Rychlostní hra
+   ============================================================ */
+
+const GAME_TIMER_MS = 8000;
+let gameSession = null;
+
+function renderGame({ categoryId }) {
+  if (!categoryId || !CATEGORY_MAP[categoryId]) { navigate('home'); return; }
+
+  const cat = CATEGORY_MAP[categoryId];
+  if (!cat.facts) { navigate('home'); return; } // only for math
+
+  showScreen('game');
+
+  // Build 20-question list (repeat facts if needed)
+  const facts = [...cat.facts];
+  const list  = [];
+  while (list.length < 20) {
+    list.push(...shuffleArray([...facts]));
+  }
+
+  gameSession = {
+    categoryId,
+    cat,
+    questions: list.slice(0, 20),
+    index:     0,
+    score:     0,
+    combo:     0,
+    correct:   0,
+    timerHandle:   null,
+    timerStartTime: null,
+    answered:  false,
+    answered_list: [],
+  };
+
+  document.getElementById('game-back').onclick = () => {
+    clearGameTimer();
+    navigate('category', { categoryId });
+  };
+
+  showNextGameQuestion();
+}
+
+function showNextGameQuestion() {
+  const gs = gameSession;
+  if (gs.index >= gs.questions.length) {
+    finishGame();
+    return;
+  }
+
+  const fact   = gs.questions[gs.index];
+  const correct = getMathAnswer(fact);
+  gs.answered  = false;
+
+  document.getElementById('game-question-count').textContent = `${gs.index + 1} / ${gs.questions.length}`;
+  document.getElementById('game-score').textContent = gs.score;
+  document.getElementById('game-question').textContent = getMathQuestion(fact);
+  document.getElementById('game-feedback').textContent = '';
+  document.getElementById('game-feedback').className  = 'game-feedback';
+
+  updateGameCombo();
+
+  const options = generateMathOptions(correct);
+  const optEl   = document.getElementById('game-options');
+  optEl.innerHTML = '';
+  options.forEach(num => {
+    const btn = document.createElement('button');
+    btn.className   = 'game-option-btn';
+    btn.textContent = num;
+    btn.addEventListener('click', () => onGameAnswer(num, fact));
+    optEl.appendChild(btn);
+  });
+
+  startGameTimer(fact, correct);
+}
+
+function startGameTimer(fact, correct) {
+  clearGameTimer();
+  const fill = document.getElementById('game-timer-fill');
+  fill.style.transition = 'none';
+  fill.style.width = '100%';
+  void fill.offsetWidth;
+  fill.style.transition = `width ${GAME_TIMER_MS}ms linear`;
+  fill.style.width = '0%';
+
+  gameSession.timerStartTime = performance.now();
+  gameSession.timerHandle = setTimeout(() => {
+    if (!gameSession.answered) onGameTimeout(fact, correct);
+  }, GAME_TIMER_MS);
+}
+
+function clearGameTimer() {
+  if (gameSession?.timerHandle) {
+    clearTimeout(gameSession.timerHandle);
+    gameSession.timerHandle = null;
+  }
+}
+
+function onGameAnswer(chosen, fact) {
+  const gs = gameSession;
+  if (gs.answered) return;
+  gs.answered = true;
+  clearGameTimer();
+
+  // Freeze timer bar
+  const fill = document.getElementById('game-timer-fill');
+  const computedWidth = fill.getBoundingClientRect().width / fill.parentElement.getBoundingClientRect().width;
+  fill.style.transition = 'none';
+  fill.style.width = `${computedWidth * 100}%`;
+
+  const correct    = getMathAnswer(fact);
+  const isCorrect  = chosen === correct;
+  const elapsed    = Math.min(GAME_TIMER_MS, performance.now() - gs.timerStartTime);
+  const remaining  = Math.max(0, GAME_TIMER_MS - elapsed);
+
+  // Mark buttons
+  const optBtns = document.querySelectorAll('.game-option-btn');
+  optBtns.forEach(btn => {
+    btn.disabled = true;
+    if (Number(btn.textContent) === correct) btn.classList.add('correct');
+    else if (Number(btn.textContent) === chosen && !isCorrect) btn.classList.add('wrong');
+  });
+
+  const feedbackEl = document.getElementById('game-feedback');
+
+  if (isCorrect) {
+    gs.combo++;
+    gs.correct++;
+    const multiplier = gs.combo >= 5 ? 3 : gs.combo >= 3 ? 2 : 1;
+    const points = Math.round((100 + (remaining / 1000) * 10) * multiplier);
+    gs.score += points;
+    showXpFlash(`+${points}`);
+    feedbackEl.textContent = multiplier > 1
+      ? `${randomCorrectMessage()} ×${multiplier} COMBO!`
+      : randomCorrectMessage();
+    feedbackEl.className = 'game-feedback correct';
+  } else {
+    gs.combo = 0;
+    feedbackEl.textContent = `Správně: ${correct}`;
+    feedbackEl.className   = 'game-feedback wrong';
+  }
+
+  updateGameCombo();
+  document.getElementById('game-score').textContent = gs.score;
+  gs.answered_list.push({ correct: isCorrect });
+
+  gs.index++;
+  const delay = isCorrect ? 900 : 1800;
+  setTimeout(() => showNextGameQuestion(), delay);
+}
+
+function onGameTimeout(fact, correct) {
+  const gs = gameSession;
+  gs.answered = true;
+  gs.combo    = 0;
+
+  const optBtns = document.querySelectorAll('.game-option-btn');
+  optBtns.forEach(btn => {
+    btn.disabled = true;
+    if (Number(btn.textContent) === correct) btn.classList.add('correct');
+  });
+
+  const feedbackEl = document.getElementById('game-feedback');
+  feedbackEl.textContent = `⏰ Čas! Správně: ${correct}`;
+  feedbackEl.className   = 'game-feedback wrong';
+
+  updateGameCombo();
+  gs.answered_list.push({ correct: false });
+  gs.index++;
+  setTimeout(() => showNextGameQuestion(), 2000);
+}
+
+function updateGameCombo() {
+  const gs     = gameSession;
+  const comboEl = document.getElementById('game-combo');
+  if (gs.combo >= 5)      comboEl.textContent = '🔥🔥🔥';
+  else if (gs.combo >= 3) comboEl.textContent = '🔥🔥';
+  else if (gs.combo >= 2) comboEl.textContent = `🔥×${gs.combo}`;
+  else                    comboEl.textContent = '';
+}
+
+function finishGame() {
+  clearGameTimer();
+  const gs = gameSession;
+  gameSession = null;
+
+  const total    = gs.questions.length;
+  const correct  = gs.correct;
+  const scorePct = correct / total;
+  const stars    = calcStars(scorePct);
+
+  saveProgress(gs.categoryId, 'game', { bestScore: scorePct, bestStars: stars });
+  updateStreak();
+
+  const xpAmount = Math.round(gs.score / 10);
+  const xpResult = addXP(xpAmount);
+
+  // Math game badges
+  const newBadges = [];
+  function tryAward(id) { if (awardBadge(id)) newBadges.push(id); }
+  tryAward('first-session');
+  tryAward('math-first-game');
+  if (maxStreakInSession(gs.answered_list) >= 5) tryAward('math-combo');
+  if (scorePct === 1) tryAward('math-perfect');
+  if (stars === 3) tryAward('three-stars');
+
+  renderResults({
+    mode:         'game',
+    categoryId:   gs.categoryId,
+    cat:          gs.cat,
+    isMath:       true,
+    score:        scorePct,
+    stars,
+    totalWords:   total,
+    correctCount: correct,
+    xpEarned:     xpAmount,
+    xpResult,
+    wrongAnswers: [],
+    newlyEarnedBadges: newBadges,
+    gameScore:    gs.score,
+  });
+}
+
+/* ============================================================
+   MATH HELPERS
+   ============================================================ */
+
+function getMathQuestion(fact) {
+  if (fact.product !== undefined) return `${fact.a} × ${fact.b} = ?`;
+  return `${fact.dividend} ÷ ${fact.divisor} = ?`;
+}
+
+function getMathAnswer(fact) {
+  return fact.product !== undefined ? fact.product : fact.quotient;
+}
+
+/**
+ * Generate 4 answer options: the correct one + 3 plausible distractors.
+ * Distractors are nearby numbers that are > 0.
+ */
+function generateMathOptions(correct) {
+  const opts = new Set([correct]);
+  const deltas = shuffleArray([-3, -2, -1, 1, 2, 3, -5, 5, 4, -4, -6, 6, 7, -7]);
+  for (const d of deltas) {
+    if (opts.size >= 4) break;
+    const c = correct + d;
+    if (c > 0 && c !== correct) opts.add(c);
+  }
+  // Fallback if still under 4
+  let offset = 10;
+  while (opts.size < 4) {
+    const c = correct + offset;
+    if (c > 0) opts.add(c);
+    offset += 3;
+  }
+  return shuffleArray([...opts]);
+}
+
+/* ============================================================
    HELPERS – HTML rendering
    ============================================================ */
 
-/**
- * Render blank word as HTML with a styled <span class="blank">
- * e.g. "chle_" → "chle<span class='blank'>_</span>"
- */
 function renderBlankWord(blank) {
   return blank.replace('_', '<span class="blank">_</span>');
 }
 
-/**
- * Render sentence with the blank word highlighted.
- * The blank placeholder _ in the sentence stays as underscore styled text.
- */
 function renderSentenceHtml(sentence, blank) {
   const safe = escapeHtml(sentence);
-  // Escape any regex special chars in the blank (precaution)
   const blankEscaped = escapeHtml(blank).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  // Match blank + any following Czech letters (case suffix: -u, -em, -ě, -ech, …)
   const re = new RegExp(blankEscaped + '[a-záčďéěíňóřšťúůýž]*', 'i');
   return safe.replace(re, match =>
     `<strong style="color:var(--primary)">${match}</strong>`
@@ -1080,7 +1427,6 @@ function escapeHtml(str) {
     .replace(/"/g, '&quot;');
 }
 
-/** Streak display */
 function updateStreakDisplay() {
   const s   = session;
   const el  = document.getElementById('ex-streak-display');
@@ -1096,12 +1442,10 @@ function updateStreakDisplay() {
   }
 }
 
-/** Show floating XP gain */
 function showXpFlash(text) {
   const el = document.createElement('div');
   el.className   = 'xp-flash';
   el.textContent = text;
-  // Position near top-center
   el.style.left = '50%';
   el.style.top  = '120px';
   el.style.transform = 'translateX(-50%)';
@@ -1109,7 +1453,6 @@ function showXpFlash(text) {
   setTimeout(() => el.remove(), 1600);
 }
 
-/** Random encouraging messages */
 const CORRECT_MESSAGES = [
   'Výborně! 🎉', 'Správně! ✓', 'Skvělé! 🌟', 'Přesně tak! 👍',
   'Bravo! 🏆', 'Super! 💪', 'Perfektní! ⭐', 'Úžasné! 🎊',
@@ -1118,7 +1461,6 @@ function randomCorrectMessage() {
   return CORRECT_MESSAGES[Math.floor(Math.random() * CORRECT_MESSAGES.length)];
 }
 
-/** Fisher-Yates shuffle (in-place, returns array) */
 function shuffleArray(arr) {
   for (let i = arr.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -1177,20 +1519,14 @@ function launchConfetti() {
       p.y += p.vy;
       p.tilt = Math.sin(p.tiltAngle - p.d / 2) * 15;
 
-      // Fade out near end
-      const alpha = elapsed > DURATION * 0.7
-        ? 1 - (elapsed - DURATION * 0.7) / (DURATION * 0.3)
-        : 1;
-
+      ctx.globalAlpha = 1;
       ctx.beginPath();
       ctx.lineWidth = p.r;
       ctx.strokeStyle = p.color;
-      ctx.globalAlpha = Math.max(0, alpha);
-      ctx.moveTo(p.x + p.tilt + p.r / 2, p.y);
+      ctx.moveTo(p.x + p.tilt + p.r / 4, p.y);
       ctx.lineTo(p.x + p.tilt, p.y + p.tilt + p.r / 2);
       ctx.stroke();
 
-      // Wrap around
       if (p.y > canvas.height) {
         p.y = -10;
         p.x = Math.random() * canvas.width;

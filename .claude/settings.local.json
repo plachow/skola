@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git tag:*)",
+      "Bash(git push:*)",
+      "Bash(node --check app/js/app.js)",
+      "Bash(node --check app/js/data.js)",
+      "Bash(node -e \"JSON.parse\\(require\\(''fs''\\).readFileSync\\(''D:/Projekty/Skola/app/data/math-nasobilek.json'',''utf8''\\)\\); console.log\\(''math OK''\\)\")",
+      "Bash(node -e \"JSON.parse\\(require\\(''fs''\\).readFileSync\\(''D:/Projekty/Skola/app/data/catalogue.json'',''utf8''\\)\\); console.log\\(''catalogue OK''\\)\")",
+      "Bash(node -e \"JSON.parse\\(require\\(''fs''\\).readFileSync\\(''D:/Projekty/Skola/app/data/game.json'',''utf8''\\)\\); console.log\\(''game OK''\\)\")",
+      "Bash(node:*)"
+    ]
+  }
+}

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Školníček** — Czech language learning app for primary school children. Focuses on paired consonants (párové souhlásky: b/p, d/t, g/k, v/f, h/ch, z/s) with gamification (XP, levels, badges, streaks). Deployed at `skola.plachy.cz`.
+**Školníček** — Czech + Math learning app for primary school children. Subjects: Český jazyk (párové souhlásky b/p, d/t, g/k, v/f, h/ch, z/s) a Matematika (násobilka & dělení 2–10). Gamification: XP, levels, badges, streaks. Deployed at `skola.plachy.cz`.
 
 ## Running the App
 
@@ -38,25 +38,40 @@ Všechna herní data jsou v `app/data/` jako JSON — **nikoli** v JS souborech:
 
 ```
 app/data/
-  catalogue.json     ← seznam modulů; přidání nového předmětu = jeden záznam sem
-  game.json          ← levely (8) a badges (13) — herní konfigurace
-  cs-parovky.json    ← 6 kategorií párových souhlásek, ~85 slov s větami
-  version.json       ← generuje CI (není v gitu), tvar: {"version":"2026.03.42"}
+  catalogue.json        ← seznam modulů; přidání nového předmětu = jeden záznam sem
+  game.json             ← levely (8) a badges (16) — herní konfigurace
+  cs-parovky.json       ← 7 kategorií párových souhlásek, ~85 slov s větami
+  math-nasobilek.json   ← 18 kategorií (násobilka 2–10 + dělení 2–10), 180 příkladů
+  version.json          ← generuje CI (není v gitu), tvar: {"version":"2026.03.42"}
 ```
 
-**Přidání nového předmětu** (např. matematika):
-1. Vytvoř `app/data/math-nasobilek.json` ve stejné struktuře jako `cs-parovky.json`
-2. Přidej záznam do `catalogue.json`
-3. Zavolej `loadData('math-nasobilek')` — vše ostatní funguje beze změn
+**Přidání nového předmětu:**
+1. Vytvoř `app/data/<id>.json` s klíčem `categories[]`
+2. Každá kategorie: `{ id, name, emoji, color, unlockAfter, type, subjectId, words[] | facts[] }`
+   - CS: `type` není, `words[]` obsahuje `{ id, word, blank, answer, proof, sentence }`
+   - Math: `type: "multiply"|"divide"`, `facts[]` obsahuje `{ id, a, b, product }` nebo `{ id, dividend, divisor, quotient }`
+3. Přidej záznam do `catalogue.json` (pole `modules`)
+4. `loadData()` načte všechny moduly automaticky — vše ostatní funguje beze změn
 
-`data.js` exportuje `let` bindings (ES module live bindings) — po `await loadData()` v `init()` vidí všechny importéry aktuální hodnoty.
+`data.js` exportuje: `CATEGORY_MAP` (všechny kategorie z všech předmětů), `SUBJECTS` + `SUBJECTS_MAP` (seznam předmětů), `WORD_MAP` (všechny items).
 
 ### Game flow
 
+**Routing:** `#home` → výběr předmětu → `#subject?id=cs|math` → `#category?categoryId=...` → `#exercise?...` nebo `#game?...`
+
+**CS (Český jazyk):**
 1. Practice → odemyká Test při 70 % splnění
-2. Test → odemyká Dictation
-3. XP → 8 levelů, 13 badges
-4. Dictation TTS: přečte celou větu normální rychlostí (bez opakování)
+2. Test → odemyká Diktát
+3. Diktát: TTS přečte větu normální rychlostí
+
+**Matematika:**
+1. Practice → odemyká Test při 70 % splnění (4 možnosti výběru, 2× správně = zvládnuto)
+2. Test → odemyká Rychlostní hru
+3. Rychlostní hra: 20 otázek, 8s časovač, combo bonus (×2 při 3 v řadě, ×3 při 5)
+
+**Progression:** nasob-2 (always) → nasob-3 (after nasob-2) → ... → nasob-10; deleni-N unlocks after nasob-N
+
+**XP:** 8 levelů, 16 badges (13 CS + 3 math)
 
 ### Sentence / blank formát
 

@@ -5,8 +5,18 @@
       "subject": "Český jazyk",
       "subjectId": "cs",
       "name": "Párové souhlásky",
-      "emoji": "🏫",
+      "emoji": "📚",
+      "desc": "Procvičuj b/p, d/t, g/k, v/f, h/ch, z/s",
       "file": "cs-parovky.json"
+    },
+    {
+      "id": "math-nasobilek",
+      "subject": "Matematika",
+      "subjectId": "math",
+      "name": "Násobilka & Dělení",
+      "emoji": "🔢",
+      "desc": "Násobení a dělení 2–10 v jednom",
+      "file": "math-nasobilek.json"
     }
   ]
 }

@@ -23,7 +23,7 @@
         <div class="logo-wrap">
           <div class="logo-emoji" aria-hidden="true">🏫</div>
           <h1 class="logo-title">Školníček</h1>
-          <p class="logo-sub">Procvičuj češtinu s radostí!</p>
+          <p class="logo-sub">Procvičuj s radostí!</p>
         </div>
         <div class="welcome-form">
           <label for="name-input" class="welcome-label">Jak se jmenuješ?</label>
@@ -44,7 +44,7 @@
       </div>
     </div>
 
-    <!-- HOME SCREEN -->
+    <!-- HOME SCREEN – subject picker -->
     <div id="screen-home" class="screen hidden" role="main">
       <header class="home-header">
         <div class="header-top">
@@ -74,26 +74,27 @@
 
       <main class="home-main">
         <section class="home-section">
-          <h2 class="section-title">Procvičování</h2>
-          <button class="module-card" id="btn-module-parovky" aria-label="Párové souhlásky – otevřít kategorie">
-            <span class="module-icon">🔤</span>
-            <div class="module-info">
-              <div class="module-name">Párové souhlásky</div>
-              <div class="module-desc">Procvičuj b/p, d/t, g/k, v/f, h/ch, z/s</div>
-            </div>
-            <span class="module-arrow" aria-hidden="true">›</span>
-          </button>
-        </section>
-
-        <section class="home-section" id="section-categories">
-          <h2 class="section-title">Moje kategorie</h2>
-          <div class="categories-grid" id="home-categories-grid"></div>
+          <h2 class="section-title">Předměty</h2>
+          <div class="subject-cards" id="home-subject-cards"></div>
         </section>
 
         <section class="home-section" id="section-badges" style="display:none">
           <h2 class="section-title">Poslední odznak</h2>
           <div class="badge-showcase" id="home-badge-showcase"></div>
         </section>
+      </main>
+    </div>
+
+    <!-- SUBJECT SCREEN – category list for one subject -->
+    <div id="screen-subject" class="screen hidden" role="main">
+      <header class="inner-header" id="subj-header">
+        <button class="btn-back" id="subj-back" aria-label="Zpět domů">
+          <span aria-hidden="true">‹</span> Zpět
+        </button>
+        <h1 class="inner-title" id="subj-title"></h1>
+      </header>
+      <main class="inner-main">
+        <div class="categories-grid" id="subj-categories-grid"></div>
       </main>
     </div>
 
@@ -138,6 +139,7 @@
             </div>
           </button>
 
+          <!-- CS mode: Dictation -->
           <button class="mode-card" id="mode-btn-dictation" data-mode="dictation">
             <span class="mode-icon">🎙️</span>
             <div class="mode-info">
@@ -149,6 +151,19 @@
               <div class="mode-lock" id="mode-lock-dictation" aria-hidden="true">🔒</div>
             </div>
           </button>
+
+          <!-- Math mode: Speed Game -->
+          <button class="mode-card hidden" id="mode-btn-game" data-mode="game">
+            <span class="mode-icon">⚡</span>
+            <div class="mode-info">
+              <div class="mode-name">Rychlostní hra</div>
+              <div class="mode-desc">20 otázek, odpovídej co nejrychleji!</div>
+            </div>
+            <div class="mode-right">
+              <div class="mode-progress-dots" id="mode-dots-game"></div>
+              <div class="mode-lock" id="mode-lock-game" aria-hidden="true">🔒</div>
+            </div>
+          </button>
         </div>
 
         <div class="lock-message hidden" id="lock-message">
@@ -156,6 +171,9 @@
         </div>
         <div class="lock-message hidden" id="lock-message-dict">
           🔒 Splň nejprve Test, abys odemkl/a Diktát.
+        </div>
+        <div class="lock-message hidden" id="lock-message-game">
+          🔒 Splň nejprve Test, abys odemkl/a Rychlostní hru.
         </div>
       </main>
     </div>
@@ -179,7 +197,7 @@
       <main class="ex-main" id="ex-main-quiz">
         <div class="ex-sentence" id="ex-sentence" aria-live="polite"></div>
 
-        <div class="ex-word-wrap">
+        <div class="ex-word-wrap" id="ex-word-wrap">
           <div class="ex-word" id="ex-word" aria-label="Doplňované slovo"></div>
         </div>
 
@@ -190,7 +208,7 @@
           <div class="hint-panel hidden" id="hint-panel" aria-live="polite"></div>
         </div>
 
-        <div class="ex-options" id="ex-options" role="group" aria-label="Vyber správné písmeno"></div>
+        <div class="ex-options" id="ex-options" role="group" aria-label="Vyber správnou odpověď"></div>
 
         <div class="ex-feedback" id="ex-feedback" aria-live="assertive"></div>
       </main>
@@ -223,6 +241,30 @@
         </div>
 
         <div class="ex-feedback" id="ex-dict-feedback" aria-live="assertive"></div>
+      </main>
+    </div>
+
+    <!-- GAME SCREEN – Rychlostní hra (math speed quiz) -->
+    <div id="screen-game" class="screen hidden" role="main">
+      <header class="game-header">
+        <button class="btn-back" id="game-back" aria-label="Zpět">
+          <span aria-hidden="true">‹</span> Zpět
+        </button>
+        <div class="game-meta">
+          <div class="game-question-count" id="game-question-count">1 / 20</div>
+          <div class="game-score-val" id="game-score">0</div>
+        </div>
+        <div class="game-combo" id="game-combo"></div>
+      </header>
+
+      <div class="game-timer-bar">
+        <div class="game-timer-fill" id="game-timer-fill"></div>
+      </div>
+
+      <main class="game-main">
+        <div class="game-question" id="game-question" aria-live="polite"></div>
+        <div class="game-options" id="game-options" role="group" aria-label="Vyber odpověď"></div>
+        <div class="game-feedback" id="game-feedback" aria-live="assertive"></div>
       </main>
     </div>
 
