@@ -327,9 +327,7 @@ function renderSubject({ id }) {
 }
 
 function isCategoryLocked(cat) {
-  if (!cat.unlockAfter) return false;
-  const prereqProg = getProgress(cat.unlockAfter);
-  return prereqProg.practice.completions === 0;
+  return false;
 }
 
 /* ============================================================
@@ -362,11 +360,9 @@ function renderCategory({ categoryId }) {
   document.getElementById('cat-back').onclick = () =>
     navigate('subject', { id: cat.subjectId });
 
-  // Mode unlock logic
-  const practiceScore  = prog.practice.bestScore;
-  const testDone       = prog.test.completions > 0;
-  const testLocked     = practiceScore < 0.7;
-  const thirdLocked    = !testDone;
+  // Mode unlock logic — all modes open from the start
+  const testLocked  = false;
+  const thirdLocked = false;
 
   // Mode dots helper
   function makeDots(modeKey) {
