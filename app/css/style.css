@@ -369,6 +369,9 @@ h1, h2, h3 {
 .header-user:hover .rename-btn { opacity: 0.6; }
 .rename-btn:hover { opacity: 1 !important; }
 
+.rename-input { display: none; }
+.rename-input.active { display: revert; }
+
 .rename-input {
   font-size: 1.5rem;
   font-weight: 900;

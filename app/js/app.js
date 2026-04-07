@@ -182,7 +182,7 @@ function renderHome() {
     renameInput.value = getUser() || '';
     nameEl.style.display    = 'none';
     btnRename.style.display = 'none';
-    renameInput.style.display = '';
+    renameInput.classList.add('active');
     renameInput.focus();
     renameInput.select();
 
@@ -192,7 +192,7 @@ function renderHome() {
         saveUser(val);
         nameEl.textContent = val;
       }
-      renameInput.style.display = 'none';
+      renameInput.classList.remove('active');
       nameEl.style.display      = '';
       btnRename.style.display   = '';
       renameInput.removeEventListener('blur', commit);
@@ -203,7 +203,7 @@ function renderHome() {
       if (e.key === 'Enter')  { e.preventDefault(); renameInput.blur(); }
       if (e.key === 'Escape') {
         renameInput.removeEventListener('blur', commit);
-        renameInput.style.display = 'none';
+        renameInput.classList.remove('active');
         nameEl.style.display      = '';
         btnRename.style.display   = '';
       }
