@@ -431,6 +431,15 @@ function renderCategory({ categoryId }) {
 /** Current active exercise session (null when no exercise running) */
 let session = null;
 
+function buildTestList(mode, items) {
+  if (mode === 'practice') return null;
+  if (mode !== 'test') return shuffleArray(items.slice()); // dictation uses queue, not testList
+  // Test: always exactly 20 questions, repeat items if category has fewer
+  const list = [];
+  while (list.length < 20) list.push(...shuffleArray(items.slice()));
+  return list.slice(0, 20);
+}
+
 function createSession(categoryId, mode) {
   const cat   = CATEGORY_MAP[categoryId];
   const isMath = cat.subjectId === 'math';
@@ -442,7 +451,7 @@ function createSession(categoryId, mode) {
     cat,
     isMath,
     queue:     shuffleArray(items.slice()),
-    testList:  mode !== 'practice' ? shuffleArray(items.slice()) : null,
+    testList:  buildTestList(mode, items),
     testIndex: 0,
     wordPerf:  Object.fromEntries(items.map(w => [w.id, 0])),
     answered:  [],
@@ -528,14 +537,16 @@ function renderQuizWord(word) {
 
   if (s.isMath) {
     // ---- Math layout ----
-    const question = getMathQuestion(word);
+    // Randomly swap operand order for multiply to train operation awareness
+    const swapped = word.product !== undefined && Math.random() < 0.5;
+    const question = getMathQuestion(word, swapped);
     const correct  = getMathAnswer(word);
 
     sentenceEl.innerHTML = `<span class="math-question-display">${question}</span>`;
     wordWrap.style.display = 'none';
     hintBar.style.display  = 'none';
 
-    const options = generateMathOptions(correct);
+    const options = generateMathOptions(correct, word);
     optionsEl.innerHTML = '';
     optionsEl.className = 'ex-options math-options';
 
@@ -593,28 +604,34 @@ function onMathQuizAnswer(chosen, word) {
   const s = session;
   if (s.pendingAdvance) return;
 
-  const correct    = getMathAnswer(word);
-  const isCorrect  = chosen === correct;
+  const correct        = getMathAnswer(word);
+  const isCorrect      = chosen === correct;
   const isFirstAttempt = !s.answered.find(a => a.wordId === word.id);
 
   s.answered.push({ wordId: word.id, correct: isCorrect, firstAttempt: isFirstAttempt });
 
   if (isCorrect) s.answerStreak++;
   else           s.answerStreak = 0;
-  updateStreakDisplay();
 
   const optionBtns = document.querySelectorAll('.option-btn');
+  optionBtns.forEach(btn => { btn.disabled = true; });
+
+  if (s.mode === 'test') {
+    // No feedback in test mode — advance quickly without revealing answer
+    if (isCorrect) s.xpEarned += 20;
+    s.testIndex++;
+    s.pendingAdvance = setTimeout(() => { s.pendingAdvance = null; showNextQuizWord(); }, 300);
+    return;
+  }
+
+  // Practice mode: full visual feedback
+  updateStreakDisplay();
   const feedbackEl = document.getElementById('ex-feedback');
   const wordEl     = document.getElementById('ex-word');
-  const hintPanel  = document.getElementById('hint-panel');
 
-  optionBtns.forEach(btn => { btn.disabled = true; });
   optionBtns.forEach(btn => {
-    if (Number(btn.textContent) === correct) {
-      btn.classList.add('correct');
-    } else if (Number(btn.textContent) === chosen && !isCorrect) {
-      btn.classList.add('wrong');
-    }
+    if (Number(btn.textContent) === correct) btn.classList.add('correct');
+    else if (Number(btn.textContent) === chosen && !isCorrect) btn.classList.add('wrong');
   });
 
   wordEl.classList.remove('bounce', 'shake');
@@ -629,22 +646,12 @@ function onMathQuizAnswer(chosen, word) {
     feedbackEl.className   = 'ex-feedback wrong';
   }
 
-  if (s.mode === 'practice') {
-    handlePracticeQueue(word, isCorrect);
-  } else {
-    if (isCorrect) {
-      let xp = 20;
-      if (s.answerStreak >= 3) xp += 5;
-      s.xpEarned += xp;
-    }
-    s.testIndex++;
-  }
+  handlePracticeQueue(word, isCorrect);
 
-  const delay = isCorrect ? 1200 : 2000;
   s.pendingAdvance = setTimeout(() => {
     s.pendingAdvance = null;
     showNextQuizWord();
-  }, delay);
+  }, isCorrect ? 1200 : 2000);
 }
 
 /* ---- CS quiz answer ------------------------------------- */
@@ -660,19 +667,26 @@ function onQuizAnswer(chosenLetter, word) {
 
   if (isCorrect) s.answerStreak++;
   else           s.answerStreak = 0;
-  updateStreakDisplay();
 
   const optionBtns = document.querySelectorAll('.option-btn');
-  const wordEl     = document.getElementById('ex-word');
-  const hintPanel  = document.getElementById('hint-panel');
-
   optionBtns.forEach(btn => { btn.disabled = true; });
+
+  if (s.mode === 'test') {
+    // No feedback in test mode — advance quickly without revealing answer
+    if (isCorrect) s.xpEarned += 20;
+    s.testIndex++;
+    s.pendingAdvance = setTimeout(() => { s.pendingAdvance = null; showNextQuizWord(); }, 300);
+    return;
+  }
+
+  // Practice mode: full visual feedback
+  updateStreakDisplay();
+  const wordEl    = document.getElementById('ex-word');
+  const hintPanel = document.getElementById('hint-panel');
+
   optionBtns.forEach(btn => {
-    if (btn.textContent.toLowerCase() === word.answer.toLowerCase()) {
-      btn.classList.add('correct');
-    } else if (btn.textContent.toLowerCase() === chosenLetter.toLowerCase() && !isCorrect) {
-      btn.classList.add('wrong');
-    }
+    if (btn.textContent.toLowerCase() === word.answer.toLowerCase()) btn.classList.add('correct');
+    else if (btn.textContent.toLowerCase() === chosenLetter.toLowerCase() && !isCorrect) btn.classList.add('wrong');
   });
 
   const blankEl = wordEl.querySelector('.blank');
@@ -692,28 +706,16 @@ function onQuizAnswer(chosenLetter, word) {
   } else {
     feedbackEl.textContent = `Správně je: ${word.word}`;
     feedbackEl.className   = 'ex-feedback wrong';
-    if (s.mode === 'practice') {
-      hintPanel.textContent = `💡 Pomůže ti: ${word.proof}`;
-      hintPanel.classList.remove('hidden');
-    }
+    hintPanel.textContent  = `💡 Pomůže ti: ${word.proof}`;
+    hintPanel.classList.remove('hidden');
   }
 
-  if (s.mode === 'practice') {
-    handlePracticeQueue(word, isCorrect);
-  } else {
-    if (isCorrect) {
-      let xp = 20;
-      if (s.answerStreak >= 3) xp += 5;
-      s.xpEarned += xp;
-    }
-    s.testIndex++;
-  }
+  handlePracticeQueue(word, isCorrect);
 
-  const delay = isCorrect ? 1200 : 2000;
   s.pendingAdvance = setTimeout(() => {
     s.pendingAdvance = null;
     showNextQuizWord();
-  }, delay);
+  }, isCorrect ? 1200 : 2000);
 }
 
 function handlePracticeQueue(word, isCorrect) {
@@ -908,7 +910,12 @@ function finishSession() {
   const score          = firstAttempts.length > 0 ? correctFirst.length / firstAttempts.length : 0;
   const stars          = calcStars(score);
 
-  // Wrong answers
+  // For test mode: grade by total wrong answers across all 20 questions
+  const isTest     = s.mode === 'test';
+  const wrongTotal = isTest ? s.answered.filter(a => !a.correct).length : null;
+  const grade      = isTest ? calcGrade(wrongTotal) : null;
+
+  // Wrong answers (unique items that failed on first attempt — for review list)
   const wrongAnswers = firstAttempts
     .filter(a => !a.correct)
     .map(a => WORD_MAP[a.wordId])
@@ -929,8 +936,10 @@ function finishSession() {
     isMath:     s.isMath,
     score,
     stars,
-    totalWords:   firstAttempts.length || items.length,
-    correctCount: correctFirst.length,
+    grade,
+    wrongTotal,
+    totalWords:   isTest ? s.answered.length : (firstAttempts.length || items.length),
+    correctCount: isTest ? s.answered.filter(a => a.correct).length : correctFirst.length,
     xpEarned:     s.xpEarned,
     xpResult,
     wrongAnswers,
@@ -943,6 +952,15 @@ function calcStars(score) {
   if (score >= 0.7) return 2;
   if (score >= 0.5) return 1;
   return 0;
+}
+
+/** Calculate school grade (1–5) from total wrong answers out of 20. */
+function calcGrade(errors) {
+  if (errors <= 2) return 1;
+  if (errors <= 4) return 2;
+  if (errors <= 6) return 3;
+  if (errors <= 8) return 4;
+  return 5;
 }
 
 function checkAndAwardBadges(s, score, stars, wrongCount) {
@@ -997,40 +1015,67 @@ function maxStreakInSession(answered) {
    RESULTS SCREEN
    ============================================================ */
 
-function renderResults({ mode, categoryId, cat, isMath, score, stars, totalWords, correctCount, xpEarned, xpResult, wrongAnswers, newlyEarnedBadges, gameScore }) {
+function renderResults({ mode, categoryId, cat, isMath, score, stars, grade, wrongTotal, totalWords, correctCount, xpEarned, xpResult, wrongAnswers, newlyEarnedBadges, gameScore }) {
   showScreen('results');
 
   const titles = { practice: 'Procvičování', test: 'Test', dictation: 'Diktát', game: 'Rychlostní hra' };
   document.getElementById('results-title').textContent = titles[mode] || 'Výsledky';
 
-  // Stars
-  const starEls = [
-    document.getElementById('star-1'),
-    document.getElementById('star-2'),
-    document.getElementById('star-3'),
-  ];
-  starEls.forEach(el => {
-    el.className = 'star-item';
-    el.textContent = '⭐';
-    el.style.animationDelay = '';
-  });
-  setTimeout(() => {
-    starEls.forEach((el, i) => {
-      if (i < stars) {
-        el.style.animationDelay = `${i * 200}ms`;
-        el.classList.add('earned');
-      } else {
-        el.classList.add('empty');
-        el.style.opacity   = '0.25';
-        el.style.transform = 'scale(1)';
-        el.style.filter    = 'grayscale(1)';
-      }
+  const starsRow    = document.getElementById('stars-row');
+  const gradeDisplay = document.getElementById('grade-display');
+
+  if (mode === 'test' && grade !== null) {
+    // Show school grade instead of stars for tests
+    starsRow.classList.add('hidden');
+    gradeDisplay.classList.remove('hidden');
+    const gradeConfigs = {
+      1: { bg: '#4CAF50', label: 'Výborný!',       icon: '🌟' },
+      2: { bg: '#8BC34A', label: 'Chvalitebný',    icon: '👍' },
+      3: { bg: '#FFC107', label: 'Dobrý',          icon: '👌' },
+      4: { bg: '#FF9800', label: 'Dostatečný',     icon: '🤔' },
+      5: { bg: '#F44336', label: 'Nedostatečný',   icon: '😔' },
+    };
+    const cfg = gradeConfigs[grade];
+    const badgeEl = document.getElementById('grade-badge');
+    badgeEl.textContent    = grade;
+    badgeEl.style.background = cfg.bg;
+    document.getElementById('grade-label').textContent  = `${cfg.icon} ${cfg.label}`;
+    document.getElementById('grade-errors').textContent =
+      `${wrongTotal} ${wrongTotal === 1 ? 'chyba' : wrongTotal >= 2 && wrongTotal <= 4 ? 'chyby' : 'chyb'} z ${totalWords}`;
+  } else {
+    starsRow.classList.remove('hidden');
+    gradeDisplay.classList.add('hidden');
+    // Stars
+    const starEls = [
+      document.getElementById('star-1'),
+      document.getElementById('star-2'),
+      document.getElementById('star-3'),
+    ];
+    starEls.forEach(el => {
+      el.className = 'star-item';
+      el.textContent = '⭐';
+      el.style.animationDelay = '';
     });
-  }, 100);
+    setTimeout(() => {
+      starEls.forEach((el, i) => {
+        if (i < stars) {
+          el.style.animationDelay = `${i * 200}ms`;
+          el.classList.add('earned');
+        } else {
+          el.classList.add('empty');
+          el.style.opacity   = '0.25';
+          el.style.transform = 'scale(1)';
+          el.style.filter    = 'grayscale(1)';
+        }
+      });
+    }, 100);
+  }
 
   // Score text
   if (mode === 'game') {
     document.getElementById('results-score').textContent = `Skóre: ${gameScore} bodů`;
+  } else if (mode === 'test') {
+    document.getElementById('results-score').textContent = `${correctCount} správně z ${totalWords}`;
   } else {
     document.getElementById('results-score').textContent =
       stars === 0
@@ -1051,7 +1096,7 @@ function renderResults({ mode, categoryId, cat, isMath, score, stars, totalWords
     levelBanner.classList.add('hidden');
   }
 
-  if (stars === 3 && !xpResult.didLevelUp) {
+  if ((stars === 3 || grade === 1) && !xpResult.didLevelUp) {
     setTimeout(() => launchConfetti(), 600);
   }
 
@@ -1196,13 +1241,14 @@ function showNextGameQuestion() {
 
   document.getElementById('game-question-count').textContent = `${gs.index + 1} / ${gs.questions.length}`;
   document.getElementById('game-score').textContent = gs.score;
-  document.getElementById('game-question').textContent = getMathQuestion(fact);
+  const gameSwapped = fact.product !== undefined && Math.random() < 0.5;
+  document.getElementById('game-question').textContent = getMathQuestion(fact, gameSwapped);
   document.getElementById('game-feedback').textContent = '';
   document.getElementById('game-feedback').className  = 'game-feedback';
 
   updateGameCombo();
 
-  const options = generateMathOptions(correct);
+  const options = generateMathOptions(correct, fact);
   const optEl   = document.getElementById('game-options');
   optEl.innerHTML = '';
   options.forEach(num => {
@@ -1367,8 +1413,10 @@ function finishGame() {
    MATH HELPERS
    ============================================================ */
 
-function getMathQuestion(fact) {
-  if (fact.product !== undefined) return `${fact.a} × ${fact.b} = ?`;
+function getMathQuestion(fact, swapped = false) {
+  if (fact.product !== undefined) {
+    return swapped ? `${fact.b} × ${fact.a} = ?` : `${fact.a} × ${fact.b} = ?`;
+  }
   return `${fact.dividend} ÷ ${fact.divisor} = ?`;
 }
 
@@ -1378,15 +1426,25 @@ function getMathAnswer(fact) {
 
 /**
  * Generate 4 answer options: the correct one + 3 plausible distractors.
- * Distractors are nearby numbers that are > 0.
+ * Always includes the "opposite operation" result so children must focus on
+ * whether they're multiplying or dividing:
+ *   – multiply a×b=p  → distractor is b (= p÷a, what you'd get if dividing)
+ *   – divide d÷s=q    → distractor is d×s (the full multiply result)
  */
-function generateMathOptions(correct) {
+function generateMathOptions(correct, fact) {
   const opts = new Set([correct]);
+
+  // Opposite-operation distractor
+  const opposite = fact.product !== undefined
+    ? fact.b                          // multiply: operand child might pick if confused
+    : fact.dividend * fact.divisor;   // divide: full product (most common wrong answer)
+  if (opposite > 0 && opposite !== correct) opts.add(opposite);
+
   const deltas = shuffleArray([-3, -2, -1, 1, 2, 3, -5, 5, 4, -4, -6, 6, 7, -7]);
   for (const d of deltas) {
     if (opts.size >= 4) break;
     const c = correct + d;
-    if (c > 0 && c !== correct) opts.add(c);
+    if (c > 0 && !opts.has(c)) opts.add(c);
   }
   // Fallback if still under 4
   let offset = 10;

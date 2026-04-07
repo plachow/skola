@@ -1026,6 +1026,44 @@ h1, h2, h3 {
   100% { transform: scale(1) rotate(0deg); opacity: 1; }
 }
 
+/* Grade display (test mode) */
+.grade-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.grade-badge {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3.5rem;
+  font-weight: 900;
+  color: #fff;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.25);
+  animation: gradePop 500ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes gradePop {
+  from { opacity: 0; transform: scale(0) rotate(-15deg); }
+  to   { opacity: 1; transform: scale(1) rotate(0deg); }
+}
+
+.grade-label {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.grade-errors {
+  font-size: 1rem;
+  color: var(--text-muted, #888);
+}
+
 .results-score {
   font-size: 1.5rem;
   font-weight: 800;
