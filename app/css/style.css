@@ -386,6 +386,25 @@ h1, h2, h3 {
   outline: none;
 }
 
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.mute-btn {
+  background: rgba(255,255,255,0.15);
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 0.35rem 0.5rem;
+  font-size: 1rem;
+  cursor: pointer;
+  opacity: 0.75;
+  line-height: 1;
+  transition: opacity 0.15s;
+}
+.mute-btn:hover { opacity: 1; }
+
 .header-streak {
   background: rgba(255,255,255,0.2);
   border-radius: var(--radius-sm);

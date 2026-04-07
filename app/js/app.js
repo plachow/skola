@@ -13,6 +13,7 @@ import {
   getProgress, saveProgress,
 } from './storage.js';
 import { speak, cancel } from './speech.js';
+import { isMuted, toggleMute, playCorrect, playWrong, playCombo, playVictory, playBadge, playTimeout } from './sound.js';
 
 /* ============================================================
    ROUTING
@@ -208,6 +209,14 @@ function renderHome() {
         btnRename.style.display   = '';
       }
     };
+  };
+
+  // Mute button
+  const btnMute = document.getElementById('btn-mute');
+  btnMute.textContent = isMuted() ? '🔇' : '🔊';
+  btnMute.onclick = () => {
+    const muted = toggleMute();
+    btnMute.textContent = muted ? '🔇' : '🔊';
   };
 
   // Subject cards
@@ -639,9 +648,11 @@ function onMathQuizAnswer(chosen, word) {
   wordEl.classList.add(isCorrect ? 'bounce' : 'shake');
 
   if (isCorrect) {
+    playCorrect();
     feedbackEl.textContent = randomCorrectMessage();
     feedbackEl.className   = 'ex-feedback correct';
   } else {
+    playWrong();
     feedbackEl.textContent = `Správně je: ${correct}`;
     feedbackEl.className   = 'ex-feedback wrong';
   }
@@ -701,9 +712,11 @@ function onQuizAnswer(chosenLetter, word) {
 
   const feedbackEl = document.getElementById('ex-feedback');
   if (isCorrect) {
+    playCorrect();
     feedbackEl.textContent = randomCorrectMessage();
     feedbackEl.className   = 'ex-feedback correct';
   } else {
+    playWrong();
     feedbackEl.textContent = `Správně je: ${word.word}`;
     feedbackEl.className   = 'ex-feedback wrong';
     hintPanel.textContent  = `💡 Pomůže ti: ${word.proof}`;
@@ -847,10 +860,12 @@ function onDictationSubmit(word) {
 
   if (isCorrect) {
     s.answerStreak++;
+    playCorrect();
     feedbackEl.textContent = `✓ Správně! ${word.word}`;
     feedbackEl.className   = 'ex-feedback correct';
   } else {
     s.answerStreak = 0;
+    playWrong();
     feedbackEl.textContent = `✗ Správně je: ${word.word}`;
     feedbackEl.className   = 'ex-feedback wrong';
   }
@@ -1017,6 +1032,13 @@ function maxStreakInSession(answered) {
 
 function renderResults({ mode, categoryId, cat, isMath, score, stars, grade, wrongTotal, totalWords, correctCount, xpEarned, xpResult, wrongAnswers, newlyEarnedBadges, gameScore }) {
   showScreen('results');
+
+  // Result sounds — badge takes priority, then victory for good results
+  if (newlyEarnedBadges.length > 0) {
+    playBadge();
+  } else if (mode === 'game' || stars >= 2 || (grade !== null && grade <= 2)) {
+    playVictory();
+  }
 
   const titles = { practice: 'Procvičování', test: 'Test', dictation: 'Diktát', game: 'Rychlostní hra' };
   document.getElementById('results-title').textContent = titles[mode] || 'Výsledky';
@@ -1318,12 +1340,14 @@ function onGameAnswer(chosen, fact) {
     const points = Math.round((100 + (remaining / 1000) * 10) * multiplier);
     gs.score += points;
     showXpFlash(`+${points}`);
+    if (multiplier > 1) playCombo(); else playCorrect();
     feedbackEl.textContent = multiplier > 1
       ? `${randomCorrectMessage()} ×${multiplier} COMBO!`
       : randomCorrectMessage();
     feedbackEl.className = 'game-feedback correct';
   } else {
     gs.combo = 0;
+    playWrong();
     feedbackEl.textContent = `Správně: ${correct}`;
     feedbackEl.className   = 'game-feedback wrong';
   }
@@ -1349,6 +1373,7 @@ function onGameTimeout(fact, correct) {
   });
 
   const feedbackEl = document.getElementById('game-feedback');
+  playTimeout();
   feedbackEl.textContent = `⏰ Čas! Správně: ${correct}`;
   feedbackEl.className   = 'game-feedback wrong';
 
